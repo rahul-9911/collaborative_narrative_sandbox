@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # StoryForge Monolith (Node.js/Express)
+  app:
+    build: .
+    container_name: storyforge_app
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_USER=${DB_USER:-storyforge}
+      - DB_PASSWORD=${DB_PASSWORD:-password123}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-storyforge_v1}
+      - DB_PORT=5432
+      - AI_PROVIDER=${AI_PROVIDER:-GEMINI}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=3000
+    depends_on:
+      - db
+    networks:
+      - storyforge_net
+
+  # PostgreSQL Database
+  db:
+    image: postgres:16
+    container_name: storyforge_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-storyforge}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password123}
+      POSTGRES_DB: ${DB_NAME:-storyforge_v1}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - storyforge_net
+
+networks:
+  storyforge_net:
+    driver: bridge
+
+volumes:
+  pgdata:

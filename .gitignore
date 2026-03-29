@@ -1,0 +1,28 @@
+# Node
+node_modules/
+dist/
+public/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+pgdata/
+
+# IDE/System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Deployment - ALLOWING THESE IN REPO
+# .gitignore updated to include deployment automation
+!deploy.sh
+!deploy.ps1
+!Dockerfile
+!docker-compose.yml
+!MACHINE_CONTEXT.md
+!.dockerignore
