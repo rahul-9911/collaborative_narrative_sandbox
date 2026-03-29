@@ -1,27 +1,26 @@
-# GEMINI.md - StoryForge
+# GEMINI.md - StoryForge (v2.5)
 
 ## Project Overview
-**StoryForge** is the "GitHub for Interactive Literature." It allows users to play, write, and "fork" branching narratives, automatically professionalizing them into books while tracking attribution and royalties.
+**StoryForge** is the "GitHub for Interactive Literature." It allows authors to collaboratively write, branch, and version-control narrative multiverses, moving them from collaborative drafts toward professional publication.
 
-## Current Project Status: "Modular v2 Engine" (Current)
-We have successfully transitioned from a flat monolith to a professional modular architecture.
+## Current Project Status: "Modular v2.5 Suite" (Current)
+We have successfully transitioned from a monolith to a **Fully Modular Component Architecture**.
 
-### Core Implementation (v2 Complete)
-- **Modular Monolith:** Refactored into `/api/routes`, `/api/controllers`, and `/services`.
-- **Scene-Based Continuity:** Chapters now contain multiple "Scenes" (pages) for realistic length.
-- **Story Steering Wheel:** Metadata-driven AI (Genre, Tone, Pacing, and Plot Goals).
-- **User Agency:** "What Happens Next" (WHN) free-text input and manual branching (Forking).
-- **Journey Recovery:** Automated path reconstruction and Branch Selection UI.
-- **Persistence:** PostgreSQL 16 with JSONB metadata and Scene-Tree schema.
+### Core Implementation (Complete)
+- **Modular Monolith Backend:** Decoupled into `/api/routes`, `/api/controllers`, and `/services`.
+- **Modular React Frontend:** Dismantled the `App.jsx` monolith into standalone views (`Home`, `Library`, `Quest`, `Branches`) and layouts.
+- **Narrative Continuity:** High-fidelity scene-based chapters with automated titling and pacing controls (1-15 paragraphs).
+- **Hardened Decision Portal:** Map-centric branching with context-aware previews and multiline custom inputs.
+- **Resilience Engine:** Automated exponential backoff retry for AI transient errors (503/500).
+- **Persistent Version History:** Recursive top-down timeline map with path-tracing integrity.
 
 ## The Expert Team
 - **Archie (Architect):** Refined the recursive scene-based engine.
-- **Sequence (Task Architect):** Breaking down complex refactors into surgical steps.
-- **Struct (Code Architect):** Enforcing modularity and backend separation.
-- **Vance (Archivist):** Synchronizing documentation and project lineage.
+- **Sequence (Task Architect):** Broke down the "Great Dismantling" into surgical steps.
+- **Struct (Code Architect):** Enforced modularity across the full stack.
+- **Vance (Archivist):** Synchronized platform branding and documentation.
 
-## Next Milestones (Session 3)
+## Next Milestones (Session 4)
 1. **Audio/Voice Ingestion:** Implementation of the "Voice-First" prose pipeline (RTX 3060).
-2. **Visual Multiverse:** Interactive graph visualization of story forks.
-3. **Legal Ledger:** Logic for tracking chapter attribution and royalties.
-4. **Pacing Engine:** AI-driven "End Story" detection based on Plot Goals.
+2. **Legal Ledger:** Logic for tracking contribution percentages and royalties.
+3. **Pacing Engine:** AI-driven "Plot Completion" detection.

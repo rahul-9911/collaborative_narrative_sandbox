@@ -1,18 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Plus, GitBranch, Play, Save, ChevronRight, Settings, History, Map } from 'lucide-react';
+import { Sparkles, Map, PenTool, Info, AlertCircle, RefreshCw } from 'lucide-react';
+import { api } from './services/api.service';
+
+// Layout & Views
+import Sidebar from './components/layout/Sidebar';
+import HomeView from './views/HomeView';
+import LibraryView from './views/LibraryView';
+import QuestView from './views/QuestView';
+import BranchesView from './views/BranchesView';
 
 const App = () => {
-  const [view, setView] = useState('library');
+  const [view, setView] = useState('home'); 
   const [stories, setStories] = useState([]);
   const [currentStory, setCurrentStory] = useState(null);
-  const [branches, setBranches] = useState([]);
+  const [allChapters, setAllChapters] = useState([]);
   const [storyPath, setStoryPath] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pacing, setPacing] = useState(3);
+  const [error, setError] = useState(null);
+  const [lastAttempt, setLastAttempt] = useState(null);
+
+  const [forkingNode, setForkingNode] = useState(null);
+  const [forkChoices, setForkChoices] = useState([]);
+  const [customInput, setCustomInput] = useState('');
+
+  const [newStory, setNewStory] = useState({ 
+    title: '', description: '',
+    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' }
+  });
 
   const fetchStories = async () => {
     try {
-      const res = await fetch('/api/stories');
-      const data = await res.json();
+      const data = await api.getStories();
       setStories(data);
     } catch (err) {
       console.error('Failed to fetch stories', err);
@@ -23,28 +42,18 @@ const App = () => {
     fetchStories();
   }, []);
 
-  const [newStory, setNewStory] = useState({ 
-    title: '', 
-    description: '',
-    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: 'Defeat the Shadow King' }
-  });
+  const resetPacing = () => setPacing(3);
 
   const createStory = async () => {
     if (!newStory.title || !newStory.description) return alert('Please fill in title and description.');
     setLoading(true);
     try {
-      const res = await fetch('/api/stories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStory)
-      });
-      if (res.ok) {
-        await fetchStories();
-        setView('library');
-        setNewStory({ title: '', description: '', metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' } });
-      }
+      await api.createStory(newStory);
+      await fetchStories();
+      setView('library');
+      setNewStory({ title: '', description: '', metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' } });
     } catch (err) {
-      console.error('Failed to create story', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -53,127 +62,100 @@ const App = () => {
   const loadWorldBranches = async (story) => {
     setLoading(true);
     setCurrentStory(story);
+    setForkingNode(null);
+    resetPacing();
     try {
-      const res = await fetch(`/api/stories/${story.id}/branches`);
-      const data = await res.json();
-      
-      if (data.length === 0) {
-        // Start fresh
+      const chapters = await api.getChapters(story.id);
+      setAllChapters(chapters);
+      if (chapters.length === 0) {
         startQuestAtNode(story, null);
-      } else if (data.length === 1) {
-        // Auto-resume only path
-        startQuestAtNode(story, data[0]);
       } else {
-        // Show Branch Selector
-        setBranches(data);
         setView('branches');
         setLoading(false);
       }
     } catch (err) {
-      console.error('Failed to load branches', err);
+      setError(err.message);
       setLoading(false);
     }
   };
 
   const startQuestAtNode = async (story, leafNode) => {
     setLoading(true);
-    setView('quest');
+    setError(null);
     setStoryPath([]);
+    resetPacing();
     
     try {
       if (!leafNode) {
-        // Start NEW Journey
-        const genRes = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            prompt: `Start a new story: ${story.title}. Premise: ${story.description}`, 
-            context: '',
-            metadata: story.metadata
-          })
+        setView('quest'); // Switch early for fresh stories as we generate the first chapter
+        const data = await api.generateAI({ 
+          prompt: `Start a new story: ${story.title}. Premise: ${story.description}`, 
+          context: '',
+          metadata: story.metadata,
+          length: pacing,
+          needsTitle: true
         });
-        const data = await genRes.json();
         
-        const saveRes = await fetch(`/api/stories/${story.id}/chapters`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: 'Chapter 1', content: data.prose })
-        });
-        const newChapter = await saveRes.json();
+        const newChapter = await api.saveChapter(story.id, { title: data.title || 'Chapter 1', content: data.prose });
         setStoryPath([{ ...newChapter, choices: data.choices || [] }]);
       } else {
-        // RESUME Journey from leaf node
-        // 1. Fetch ALL chapters for story
-        const res = await fetch(`/api/stories/${story.id}/chapters`);
-        const allChapters = await res.json();
-        
-        // 2. Trace path from leaf back to root
+        // RESUME Journey
+        const chapters = await api.getChapters(story.id);
         let path = [];
-        let currentNode = leafNode;
-        while (currentNode) {
-          const chapterWithScenes = allChapters.find(c => c.id === currentNode.id);
-          path.unshift(chapterWithScenes);
-          currentNode = allChapters.find(c => c.id === currentNode.parent_id);
+        let current = leafNode;
+        while (current) {
+          const chapterWithScenes = chapters.find(c => c.id === current.id);
+          if (chapterWithScenes) path.unshift(chapterWithScenes);
+          current = chapters.find(c => c.id === current.parent_id);
         }
         
-        // 3. Generate choices for the last chapter
         const lastChapter = path[path.length - 1];
         const fullContent = (lastChapter.scenes || []).map(s => s.content).join('\n\n') || lastChapter.content;
-        
-        const choicesRes = await fetch('/api/generate/choices', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: fullContent, metadata: story.metadata })
-        });
-        const { choices } = await choicesRes.json();
+        const { choices } = await api.generateChoices({ content: fullContent, metadata: story.metadata });
         
         setStoryPath(path.map((c, i) => i === path.length - 1 ? { ...c, choices } : c));
+        setView('quest'); // SWITCH VIEW ONLY AFTER DATA IS READY
       }
     } catch (err) {
-      console.error('Quest start failed', err);
-      setView('library');
+      setError(err.message);
+      setLastAttempt({ type: 'start', story, leafNode });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChoice = async (choice) => {
-    const currentChapter = storyPath[storyPath.length - 1];
-    const sceneLimit = 3;
-    const currentSceneCount = (currentChapter.scenes || []).length;
+  const handleChoice = async (choice, specificNode = null) => {
+    const activeStory = currentStory;
+    const currentChapter = specificNode || storyPath[storyPath.length - 1];
+    const isManualFork = !!specificNode;
+    const isNewChapterNeeded = isManualFork || (currentChapter.scenes || []).length >= 3;
 
-    let globalContext = `WORLD PREMISE: ${currentStory.description}\n\n`;
-    const previousChapters = storyPath.slice(0, -1);
-    if (previousChapters.length > 0) {
-      globalContext += "PREVIOUS JOURNEY:\n";
+    setError(null);
+    setLoading(true);
+
+    let globalContext = `WORLD PREMISE: ${activeStory.description}\n\n`;
+    if (isManualFork) {
+      globalContext += (currentChapter.scenes || []).map(s => s.content).join('\n\n') || currentChapter.content;
+    } else {
+      const previousChapters = storyPath.slice(0, -1);
       previousChapters.forEach((chap, i) => {
         const chapContent = (chap.scenes || []).map(s => s.content).join(' ') || chap.content;
         globalContext += `Chapter ${i + 1} (${chap.title}): ${chapContent.substring(0, 300)}...\n`;
       });
-      globalContext += "\n";
+      globalContext += `CURRENT CHAPTER SO FAR:\n${(currentChapter.scenes || []).map(s => s.content).join('\n\n') || currentChapter.content}`;
     }
 
-    const currentChapterContext = (currentChapter.scenes || [])
-      .map(s => s.content)
-      .join('\n\n') || currentChapter.content;
-    globalContext += `CURRENT CHAPTER SO FAR:\n${currentChapterContext}`;
-
-    setLoading(true);
     try {
-      const genRes = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: `User action: ${choice}`, context: globalContext, metadata: currentStory.metadata })
+      const data = await api.generateAI({ 
+        prompt: `Action: ${choice}`, 
+        context: globalContext, 
+        metadata: activeStory.metadata,
+        length: pacing,
+        needsTitle: isNewChapterNeeded
       });
-      const data = await genRes.json();
 
-      if (currentSceneCount < sceneLimit) {
-        const sceneRes = await fetch(`/api/chapters/${currentChapter.id}/scenes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: data.prose })
-        });
-        const newScene = await sceneRes.json();
+      if (!isNewChapterNeeded) {
+        const newScene = await api.addScene(currentChapter.id, { content: data.prose });
         const newPath = [...storyPath];
         newPath[newPath.length - 1] = {
           ...newPath[newPath.length - 1],
@@ -182,171 +164,152 @@ const App = () => {
         };
         setStoryPath(newPath);
       } else {
-        const forkRes = await fetch(`/api/chapters/${currentChapter.id}/fork`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: `Chapter ${storyPath.length + 1}`, content: data.prose })
+        const nextChapter = await api.saveChapter(activeStory.id, { 
+          title: data.title || `Branch: ${choice.substring(0, 15)}`, 
+          content: data.prose,
+          parent_id: currentChapter.id 
         });
-        const nextChapter = await forkRes.json();
-        setStoryPath([...storyPath, { ...nextChapter, choices: data.choices || [] }]);
+        if (isManualFork) {
+          await startQuestAtNode(activeStory, nextChapter);
+        } else {
+          setStoryPath([...storyPath, { ...nextChapter, choices: data.choices || [] }]);
+        }
       }
+      setForkingNode(null);
+      setCustomInput('');
+      resetPacing();
     } catch (err) {
-      console.error('Choice failed', err);
+      setError(err.message);
+      setLastAttempt({ type: 'choice', choice, specificNode });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const prepareFork = async (chapter) => {
+    setLoading(true);
+    setForkingNode(chapter);
+    setError(null);
+    resetPacing();
+    try {
+      const fullContent = (chapter.scenes || []).map(s => s.content).join('\n\n') || chapter.content;
+      const { choices } = await api.generateChoices({ content: fullContent, metadata: currentStory.metadata });
+      setForkChoices(choices);
+    } catch (err) {
+      setError("Failed to draw choices for this branch.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleManualFork = async (chapter) => {
-    const customAction = prompt("Manual branch point:");
+    const customAction = prompt("Branch narrative from this point:");
     if (!customAction) return;
     const fullChapterContext = (chapter.scenes || []).map(s => s.content).join('\n\n') || chapter.content;
+    setError(null);
     setLoading(true);
     try {
-      const genRes = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: customAction, context: fullChapterContext, metadata: currentStory.metadata })
+      const data = await api.generateAI({ 
+        prompt: customAction, 
+        context: fullChapterContext, 
+        metadata: currentStory.metadata, 
+        length: pacing, 
+        needsTitle: true 
       });
-      const data = await genRes.json();
-      const forkRes = await fetch(`/api/chapters/${chapter.id}/fork`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: `Fork: ${customAction.substring(0, 20)}`, content: data.prose })
+      
+      const nextChapter = await api.forkChapter(chapter.id, { 
+        title: data.title || `Branch: ${customAction.substring(0, 20)}`, 
+        content: data.prose 
       });
-      const nextChapter = await forkRes.json();
+      
       const chapterIndex = storyPath.findIndex(c => c.id === chapter.id);
       setStoryPath([...storyPath.slice(0, chapterIndex + 1), { ...nextChapter, choices: data.choices || [] }]);
     } catch (err) {
-      console.error('Fork failed', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const retryLastAction = () => {
+    if (!lastAttempt) return;
+    if (lastAttempt.type === 'start') startQuestAtNode(lastAttempt.story, lastAttempt.leafNode);
+    if (lastAttempt.type === 'choice') handleChoice(lastAttempt.choice, lastAttempt.specificNode);
+  };
+
   return (
-    <div className="min-h-screen bg-[#FDFCF8] text-[#1A1A1A] font-serif flex flex-col items-center py-8 px-4">
-      <header className="max-w-4xl w-full flex justify-between items-center mb-12 border-b border-stone-200 pb-4">
-        <h1 className="text-3xl font-bold tracking-tight text-stone-900 flex items-center gap-2">
-          <Book className="w-8 h-8 text-amber-900" /> StoryForge
-        </h1>
-        <div className="flex gap-4">
-          <button onClick={() => { setView('library'); setStoryPath([]); }} className="text-sm font-medium hover:text-amber-900">Library</button>
-          <button onClick={() => setView('architect')} className="flex items-center gap-1 bg-stone-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-stone-800 transition-all">
-            <Plus className="w-4 h-4" /> New World
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen flex bg-[#050505] text-stone-300 overflow-hidden font-sans">
+      <Sidebar 
+        view={view} 
+        setView={setView} 
+        resetPacing={resetPacing} 
+        pacing={pacing} 
+        setPacing={setPacing} 
+        showPacing={view === 'quest' || !!forkingNode}
+      />
 
-      <main className="max-w-4xl w-full">
-        {loading && view === 'library' && (
-          <div className="flex justify-center py-20 text-stone-400 animate-pulse italic">Scanning the multiverse...</div>
-        )}
-
-        {view === 'library' && !loading && (
-          <div className="grid md:grid-cols-2 gap-6">
-            {stories.map(story => (
-              <div key={story.id} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 hover:border-stone-400 transition-all">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold">{story.title}</h3>
-                  <span className="px-2 py-1 bg-stone-100 rounded text-[10px] uppercase font-bold tracking-tighter text-stone-500">{story.metadata?.genre || 'General'}</span>
-                </div>
-                <p className="text-stone-600 mb-6 text-sm italic line-clamp-2">{story.description}</p>
-                <button onClick={() => loadWorldBranches(story)} className="flex items-center gap-2 text-amber-900 font-bold hover:gap-3 transition-all">
-                  Enter World <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+      <main className="flex-1 relative overflow-y-auto h-screen bg-[#050505]">
+        <header className="h-24 border-b border-white/5 flex items-center justify-between px-12 sticky top-0 bg-black/60 backdrop-blur-2xl z-40">
+          <div className="flex items-center gap-6">
+            {view === 'quest' && <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />}
+            <h2 className="text-xl font-black tracking-tighter text-white uppercase italic">
+              {view === 'quest' ? currentStory?.title : view === 'library' ? 'The Library' : view === 'architect' ? 'Story Architect' : 'Dashboard'}
+            </h2>
           </div>
-        )}
-
-        {view === 'branches' && (
-          <div className="max-w-xl mx-auto space-y-6">
-            <h2 className="text-2xl font-bold mb-8">Choose a path to resume</h2>
-            {branches.map(branch => (
-              <button 
-                key={branch.id} 
-                onClick={() => startQuestAtNode(currentStory, branch)}
-                className="w-full text-left p-6 bg-white rounded-2xl border border-stone-200 hover:border-stone-900 transition-all group flex justify-between items-center"
-              >
-                <div>
-                  <div className="text-xs uppercase tracking-widest text-stone-400 font-bold mb-1">Created {new Date(branch.created_at).toLocaleDateString()}</div>
-                  <div className="text-lg font-bold group-hover:text-amber-900 transition-colors">{branch.title}</div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-stone-300 group-hover:translate-x-1 transition-all" />
-              </button>
-            ))}
-            <button 
-              onClick={() => startQuestAtNode(currentStory, null)}
-              className="w-full text-center p-4 text-stone-400 border-2 border-dashed border-stone-200 rounded-2xl hover:bg-stone-50 hover:text-stone-900 transition-all italic text-sm"
-            >
-              + Start a new timeline
+          {view === 'quest' && (
+            <button onClick={() => setView('branches')} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-amber-500 transition-all bg-white/5 px-6 py-3 rounded-full border border-white/5">
+              <Map className="w-4 h-4" /> Version History
             </button>
-          </div>
-        )}
+          )}
+        </header>
 
-        {view === 'quest' && storyPath.length > 0 && (
-          <div className="max-w-2xl mx-auto animate-in fade-in duration-700">
-            {storyPath.map((chapter, index) => (
-              <div key={chapter.id} className="mb-16 relative">
-                <div className="flex justify-between items-center mb-8">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-stone-400">Section {index + 1}</span>
-                  <button onClick={() => handleManualFork(chapter)} className="flex items-center gap-1 text-stone-400 text-xs hover:text-amber-700 transition-colors">
-                    <GitBranch className="w-3 h-3" /> Branch from here
-                  </button>
+        <div className="p-12">
+          {error && (
+            <div className="max-w-2xl mx-auto mb-12 animate-sf-reveal">
+              <div className="bg-red-500/5 border border-red-500/20 p-8 rounded-[2.5rem] flex items-center justify-between shadow-2xl">
+                <div className="flex items-center gap-6">
+                  <AlertCircle className="w-6 h-6 text-red-500" />
+                  <div><h3 className="font-black text-red-500 uppercase tracking-tight">The Void Resists</h3><p className="text-xs text-red-400/60 mt-1">{error}</p></div>
                 </div>
-                <h2 className="text-3xl font-bold mb-8 text-stone-900 leading-tight">{chapter.title}</h2>
-                <div className="story-text text-lg text-stone-800 space-y-12 leading-relaxed border-l-[1px] border-stone-200 pl-8">
-                  {(chapter.scenes && chapter.scenes.length > 0) ? (
-                    chapter.scenes.map((scene, sIdx) => (
-                      <div key={scene.id || sIdx} className="space-y-6">
-                        {scene.content.split('\n\n').map((para, pIdx) => <p key={pIdx}>{para}</p>)}
-                      </div>
-                    ))
-                  ) : (
-                    (chapter.content || '').split('\n\n').map((para, i) => <p key={i}>{para}</p>)
-                  )}
-                </div>
+                <button onClick={retryLastAction} className="sf-button-primary text-xs px-8 py-3">Retry</button>
               </div>
-            ))}
-            {loading ? (
-              <div className="flex justify-center py-12 text-stone-400 animate-pulse italic">The weaver draws a new thread...</div>
-            ) : (
-              <div className="mt-16 space-y-4 bg-stone-50 p-8 rounded-2xl border border-stone-100">
-                <p className="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-6">Forge the Next Path</p>
-                {(storyPath[storyPath.length - 1].choices || []).map((choice, i) => (
-                  <button key={i} onClick={() => handleChoice(choice)} className="w-full text-left p-5 rounded-xl border border-stone-200 bg-white hover:border-stone-900 hover:shadow-md transition-all flex items-center justify-between group">
-                    <span className="font-medium text-stone-700">{choice}</span>
-                    <Play className="w-4 h-4 text-stone-300 group-hover:text-stone-900 transition-all" />
-                  </button>
-                ))}
-                <div className="mt-8 pt-6 border-t border-stone-100">
-                  <p className="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-4 italic text-center">Or forge your own destiny</p>
-                  <div className="flex gap-2">
-                    <input type="text" id="customActionInput" placeholder="e.g. He draws his hidden dagger..." className="flex-1 p-4 rounded-xl border border-stone-200 focus:border-stone-900 outline-none font-serif text-sm" onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value) { handleChoice(e.target.value); e.target.value = ''; } }} />
-                    <button onClick={() => { const input = document.getElementById('customActionInput'); if (input.value) { handleChoice(input.value); input.value = ''; } }} className="bg-stone-900 text-white px-6 rounded-xl hover:bg-black transition-all"><ChevronRight className="w-5 h-5" /></button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {view === 'architect' && (
-          <div className="max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-2xl border border-stone-100">
-            <h2 className="text-3xl font-bold mb-8 text-stone-900">Architect a New World</h2>
-            <div className="space-y-6">
-              <div><label className="block text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2">World Title</label><input type="text" value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} className="w-full p-4 rounded-xl border border-stone-200 focus:border-stone-900 outline-none transition-all" placeholder="e.g. The Clockwork Empire" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2">Genre</label><select value={newStory.metadata.genre} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, genre: e.target.value } })} className="w-full p-4 rounded-xl border border-stone-200 outline-none appearance-none bg-stone-50"><option>Fantasy</option><option>Sci-Fi</option><option>Noir</option><option>Horror</option><option>Historical</option></select></div>
-                <div><label className="block text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2">Tone</label><select value={newStory.metadata.tone} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, tone: e.target.value } })} className="w-full p-4 rounded-xl border border-stone-200 outline-none appearance-none bg-stone-50"><option>Epic</option><option>Gritty</option><option>Whimsical</option><option>Suspenseful</option></select></div>
-              </div>
-              <div><label className="block text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2">Primary Narrative Goal</label><input type="text" value={newStory.metadata.plot_goal} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, plot_goal: e.target.value } })} className="w-full p-4 rounded-xl border border-stone-200 focus:border-stone-900 outline-none transition-all" placeholder="e.g. Find the missing starship" /></div>
-              <div><label className="block text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-2">Foundational Premise</label><textarea value={newStory.description} onChange={(e) => setNewStory({ ...newStory, description: e.target.value })} className="w-full p-4 h-32 rounded-xl border border-stone-200 focus:border-stone-900 outline-none transition-all resize-none" placeholder="The world is cold, and the stars are going out..."></textarea></div>
-              <button onClick={createStory} disabled={loading} className="w-full bg-stone-900 text-white font-bold py-5 rounded-2xl hover:bg-black transition-all shadow-lg flex justify-center items-center gap-2">{loading ? 'Forging...' : 'Forge the Foundation'}</button>
             </div>
-          </div>
-        )}
+          )}
+
+          {view === 'home' && <HomeView setView={setView} />}
+          {view === 'library' && <LibraryView stories={stories} setView={setView} loadWorldBranches={loadWorldBranches} />}
+          {view === 'branches' && (
+            <BranchesView 
+              currentStory={currentStory} allChapters={allChapters} startQuestAtNode={startQuestAtNode}
+              forkingNode={forkingNode} setForkingNode={setForkingNode} prepareFork={prepareFork}
+              loading={loading} forkChoices={forkChoices} handleChoice={handleChoice}
+              customInput={customInput} setCustomInput={setCustomInput}
+            />
+          )}
+          {view === 'quest' && (
+            <QuestView 
+              currentStory={currentStory} storyPath={storyPath} loading={loading}
+              handleChoice={handleChoice} handleManualFork={handleManualFork}
+              customInput={customInput} setCustomInput={setCustomInput} setView={setView}
+            />
+          )}
+
+          {view === 'architect' && (
+            <div className="max-w-2xl mx-auto sf-card p-20 animate-sf-reveal">
+              <div className="flex items-center gap-4 mb-12"><PenTool className="w-8 h-8 text-amber-500" /><h2 className="text-5xl font-black text-white tracking-tighter uppercase italic">Story Architect</h2></div>
+              <div className="space-y-12">
+                <div className="bg-white/5 border border-white/5 p-6 rounded-2xl flex items-start gap-4"><Info className="w-5 h-5 text-amber-500 shrink-0 mt-1" /><p className="text-xs text-stone-500 leading-relaxed uppercase tracking-wider font-bold">Define the framework. The AI drafting engine will adhere to these constraints.</p></div>
+                <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Master Title</label><input type="text" value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} className="w-full sf-input text-xl" placeholder="e.g. THE NEON ABYSS" /></div>
+                <div className="grid grid-cols-2 gap-10">
+                  <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Genre</label><select value={newStory.metadata.genre} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, genre: e.target.value } })} className="w-full sf-input appearance-none"><option>Cyberpunk</option><option>Grimdark</option><option>Eldritch</option><option>Space Opera</option><option>Historical</option></select></div>
+                  <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Tone</label><select value={newStory.metadata.tone} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, tone: e.target.value } })} className="w-full sf-input appearance-none"><option>Melancholy</option><option>Cinematic</option><option>Violent</option><option>Dreamlike</option><option>Whimsical</option></select></div>
+                </div>
+                <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Seed (Premise)</label><textarea value={newStory.description} onChange={(e) => setNewStory({ ...newStory, description: e.target.value })} className="w-full sf-input h-48 resize-none text-lg leading-relaxed" placeholder="Describe the spark of this existence..."></textarea></div>
+                <button onClick={createStory} disabled={loading} className="sf-button-primary w-full py-8 text-2xl shadow-2xl">{loading ? 'CONSTRUCTING...' : 'BEGIN ARCHITECTURE'}</button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

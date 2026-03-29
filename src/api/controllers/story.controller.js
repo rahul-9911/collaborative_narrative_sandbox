@@ -69,15 +69,15 @@ exports.getChapters = async (req, res) => {
 
 // @desc Create a new chapter (starts with Scene 1)
 exports.createChapter = async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, parent_id } = req.body;
   const client = await db.pool.connect();
   try {
     await client.query('BEGIN');
     
-    // Create Chapter
+    // Create Chapter with optional parent_id
     const chapResult = await client.query(
-      'INSERT INTO chapters (story_id, title, content) VALUES ($1, $2, $3) RETURNING *',
-      [req.params.id, title, content]
+      'INSERT INTO chapters (story_id, title, content, parent_id) VALUES ($1, $2, $3, $4) RETURNING *',
+      [req.params.id, title, content, parent_id || null]
     );
     const chapter = chapResult.rows[0];
 
@@ -151,13 +151,21 @@ exports.addScene = async (req, res) => {
 
 // @desc Core AI generation (Prose + Choices)
 exports.generateAI = async (req, res) => {
-  const { prompt, context, metadata } = req.body;
+  const { prompt, context, metadata, length, needsTitle } = req.body;
   try {
-    const prose = await ai.generateProse(prompt, context, metadata);
-    const choices = await ai.generateChoices(prose, metadata);
-    res.json({ prose, choices });
+    const aiResponse = await ai.generateProse(prompt, context, metadata, length, needsTitle);
+    const choices = await ai.generateChoices(aiResponse.prose, metadata);
+    res.json({ 
+      title: aiResponse.title, 
+      prose: aiResponse.prose, 
+      choices 
+    });
   } catch (err) {
-    res.status(500).json({ error: 'AI Generation failed' });
+    console.error('[Controller] AI Generation Error:', err.message);
+    res.status(503).json({ 
+      error: 'The storyteller is temporarily unavailable.', 
+      details: err.message 
+    });
   }
 };
 
