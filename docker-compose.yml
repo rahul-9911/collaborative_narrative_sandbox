@@ -1,36 +1,65 @@
 version: '3.8'
 
 services:
-  # StoryForge Monolith (Node.js/Express)
+  # StoryForge Backend & Frontend
   app:
     build: .
     container_name: storyforge_app
     ports:
       - "3000:3000"
     environment:
-      - DB_USER=${DB_USER:-storyforge}
-      - DB_PASSWORD=${DB_PASSWORD:-password123}
+      - NODE_ENV=production
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
       - DB_HOST=db
-      - DB_NAME=${DB_NAME:-storyforge_v1}
-      - DB_PORT=5432
-      - AI_PROVIDER=${AI_PROVIDER:-GEMINI}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - PORT=3000
+      - AI_PROVIDER=LOCAL
+      - LOCAL_AI_URL=http://ollama:11434
+      - LOCAL_MODEL_NAME=gemma3:12b
     depends_on:
       - db
+      - ollama
     networks:
       - storyforge_net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Local AI Engine (Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: storyforge_local_ai
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - storyforge_net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   # PostgreSQL Database
   db:
     image: postgres:16
     container_name: storyforge_db
     environment:
-      POSTGRES_USER: ${DB_USER:-storyforge}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password123}
-      POSTGRES_DB: ${DB_NAME:-storyforge_v1}
-    ports:
-      - "5432:5432"
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -42,3 +71,4 @@ networks:
 
 volumes:
   pgdata:
+  ollama_data:

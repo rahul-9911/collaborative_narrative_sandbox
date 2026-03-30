@@ -1,57 +1,46 @@
-# StoryForge - Operator's Manual (v2.5)
+# StoryForge - Operator's Manual (v3.0)
 
-Welcome to the StoryForge engine. Use this guide to manage your local deployment and troubleshoot the modular v2.5 architecture.
+Welcome to the StoryForge Engine. This guide provides instructions for managing the Hybrid v3.0 stack.
 
 ## 🛠️ Prerequisites
 - **Docker Desktop:** Must be installed and running.
-- **NVIDIA Container Toolkit:** (Optional) Required for GPU acceleration on the RTX 3060.
-- **Gemini API Key:** A valid key from [Google AI Studio](https://aistudio.google.com/app/apikey).
-- **Environment:** A `.env` file in the root directory (see `.env.example`).
+- **NVIDIA Container Toolkit:** Required for local GPU acceleration.
+- **Gemini API Key:** Required if `AI_PROVIDER=GEMINI` is active.
 
-## 🚀 Quick Start (Start the App)
-To power up the entire modular stack:
+## 🤖 AI Configuration (The Switch)
+You can manually toggle between Cloud and Local AI by editing the `.env` file:
+
+### 1. Cloud Mode (Google Gemini)
+```text
+AI_PROVIDER=GEMINI
+GEMINI_API_KEY=your_key_here
+```
+
+### 2. Local Mode (Your GPU)
+```text
+AI_PROVIDER=LOCAL
+LOCAL_MODEL_NAME=gemma3:12b
+```
+*Note: Local mode uses the RTX 3060 via Ollama. Re-run `./deploy.sh` after changing this setting.*
+
+## 🚀 Quick Start
 ```bash
 ./deploy.sh
 ```
-*This script checks your `.env`, builds the modular frontend/backend images, and launches the containers.*
 
-## 🛑 Power Down (Stop the App)
-To safely stop all services and release system resources:
+## 🛑 Power Down
 ```bash
 docker compose down
 ```
 
-## 🌐 Accessing the Platform
-- **Web Interface:** [http://localhost:3000](http://localhost:3000)
-- **Health API:** [http://localhost:3000/health](http://localhost:3000/health)
-
-## 📊 Monitoring & Logs
-To see what the AI and Database are doing in real-time:
-```bash
-# See logs for the entire stack
-docker compose logs -f
-
-# See specific app logs (AI generation details)
-docker logs storyforge_app -f
-
-# See database logs
-docker logs storyforge_db -f
-```
-
-## 🛠️ Management & Maintenance
-- **Rebuild Stack:** `docker compose up -d --build` (Run this after code changes).
-- **Database Shell:** `docker exec -it storyforge_db psql -U storyforge -d storyforge_v1`
-- **Manual Schema Apply:** `docker exec -i storyforge_db psql -U storyforge -d storyforge_v1 < src/db/schema.sql`
+## 📊 Real-Time Logs
+- **App/AI Logic:** `docker logs storyforge_app -f`
+- **Local Model Status:** `docker logs storyforge_local_ai -f`
 
 ## 🔍 Troubleshooting
-- **AI Error (503/500):** The engine now has built-in 3x retry logic. If it persists, check your API key in `.env`.
-- **Blank White Page:** Usually indicates a missing import or prop. Check `docker logs storyforge_app` for React build errors.
-- **Database Connection Refused:** Ensure `storyforge_db` is running and the `.env` credentials match.
-- **Reset Everything:** 
-  ```bash
-  docker compose down -v  # Warning: This deletes your story data volumes
-  ./deploy.sh
-  ```
+- **GPU Not Found:** Run `./setup_gpu.sh` to re-configure the NVIDIA bridge.
+- **JSON Parse Error:** The system automatically retries 3x. If persistent, try shortening the prompt.
+- **Port 11434 Error:** Run `sudo systemctl stop ollama` if a native service is blocking Docker.
 
 ---
-*Vance (Archivist): "Full technical integrity restored to the Manual. Documentation is now both clear and comprehensive."*
+*Vance (Archivist): "Operational blueprint synced to Hybrid v3.0 Engine."*
