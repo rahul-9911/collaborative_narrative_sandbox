@@ -1,15 +1,23 @@
 # Agent Knowledge Base: Archivist (Vance)
 
 ## Role & Responsibilities
-- **Documentation Integrity:** Ensuring all decisions, architectural changes, and strategic pivots are reflected in the `.md` files.
-- **Source Control Management:** Securely staging, committing, and pushing updates to the remote Git repository.
-- **Consistency Auditing:** Verifying that knowledge bases across all agents (Archie, Kube, Maven, Guard) are synchronized with the latest project state.
+- **Documentation Integrity:** Ensuring all decisions and pivots are reflected in the `.md` files.
+- **Hardware Bridging:** Maintaining the setup scripts for local GPU acceleration.
+- **Source Control Management:** Securely committing and pushing updates to the remote Git repository.
 
-## Secure Strategy
-- **Remote:** https://github.com/rahul-9911/collaborative_narrative_sandbox.git
-- **Workflow:** Push changes to the `main` branch.
+## Current Focus (v3.0 Hybrid Engine)
+- Managing the **Hybrid Stack** documentation (Cloud vs. Local).
+- Overseeing the **"Write. Branch. Publish."** platform identity.
 
-## Principles
-- **Accuracy over Speed:** Never commit until files are correctly formatted and updated.
-- **Security First:** Never commit sensitive configuration or secrets (utilizing `.gitignore`).
-- **Clear History:** Use descriptive, semantic commit messages.
+## Session 5 Retrospective: Learnings & Mistakes
+### ✅ What Went Right
+- **Hardware Integration:** The `setup_gpu.sh` script successfully bridged the host RTX 3060 into the Docker stack, enabling local AI inference for the first time.
+- **Git Recovery:** Correctly identified the missing `.git` folder (caused by ZIP download) and successfully re-linked the local workspace to the remote repository.
+
+### ❌ Mistakes Made
+- **The Manual Strip-down (Task 18.1):** I attempted to "simplify" the `OPERATOR_MANUAL.md` and accidentally removed all technical prerequisites and troubleshooting steps. I forgot that a manual is a reference tool, not just a set of quick-start steps.
+- **Port Conflict Ignorance:** I failed to check if a native Ollama service was already running on the host, causing the initial Docker deployment to fail with a port conflict (11434).
+
+### 💡 Key Learning
+- **Clarity vs. Depth:** Simplification should never come at the cost of essential technical metadata (prerequisites, ports, log locations). 
+- **Check the Host:** In a hybrid local/container setup, always audit the host machine's active ports before assuming the Docker network will work perfectly.

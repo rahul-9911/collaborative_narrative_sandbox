@@ -1,13 +1,13 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
-const sleep = (ms) => new Promise(res => setTimeout(ms, res));
+const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 
 class AIService {
   constructor() {
     this.provider = process.env.AI_PROVIDER || 'GEMINI'; 
     this.localUrl = process.env.LOCAL_AI_URL || 'http://ollama:11434';
-    this.localModel = process.env.LOCAL_MODEL_NAME || 'gemma3:12b';
+    this.localModel = process.env.LOCAL_MODEL_NAME || 'gemma3:4b';
 
     if (this.provider === 'GEMINI') {
       console.log("[AI] Initializing Gemini 3.1 Flash Lite...");
@@ -43,17 +43,17 @@ class AIService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: this.localModel,
-          system: systemPrompt + " Return ONLY valid JSON. No conversational filler.",
+          system: systemPrompt + " Return ONLY valid JSON. No conversational filler. Ensure the JSON is complete.",
           prompt: prompt,
           stream: false,
           format: 'json',
           options: {
             temperature: 0.8,
-            num_ctx: 16384, // Increased context window
-            num_predict: 2048 // Ensure long responses aren't cut off
+            num_ctx: 16384, 
+            num_predict: 4096 // Doubled prediction buffer for 15+ paragraphs
           }
         }),
-        signal: AbortSignal.timeout(120000) // 2-minute timeout for local inference
+        signal: AbortSignal.timeout(120000) 
       });
       if (!response.ok) throw new Error(`Local AI error: ${response.statusText}`);
       const data = await response.json();

@@ -17,7 +17,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - AI_PROVIDER=LOCAL
       - LOCAL_AI_URL=http://ollama:11434
-      - LOCAL_MODEL_NAME=gemma3:12b
+      - LOCAL_MODEL_NAME=gemma3:4b
     depends_on:
       - db
       - ollama
@@ -35,9 +35,6 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: storyforge_local_ai
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     volumes:
       - ollama_data:/root/.ollama
     ports:
