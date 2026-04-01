@@ -146,6 +146,23 @@ Avoid repetitive descriptions. Return ONLY the JSON object. No other text.
       throw err;
     }
   }
+
+  async generateSummary(content, metadata = {}) {
+    const { genre = 'Fiction' } = metadata;
+    const prompt = `Condense the following ${genre} story chapter into a single, punchy paragraph that captures the most important plot events and character shifts for long-term memory:\n\n${content}\n\nReturn ONLY the summary paragraph. No conversational filler.`;
+
+    try {
+      if (this.provider === 'GEMINI') {
+        const result = await this.model.generateContent(prompt);
+        return result.response.text();
+      } else {
+        return await this.callLocalLLM(prompt, "You are a master literary summarizer.");
+      }
+    } catch (err) {
+      console.error('[AI] Summarization Error:', err.message);
+      return "The journey continued..."; // Fallback summary
+    }
+  }
 }
 
 module.exports = new AIService();

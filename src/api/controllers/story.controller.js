@@ -1,15 +1,12 @@
-const db = require('../../config/db');
+const Story = require('../../models/story.model');
+const Chapter = require('../../models/chapter.model');
 const ai = require('../../services/ai.service');
 
 // @desc Create a new story world
 exports.createStory = async (req, res) => {
-  const { title, description, metadata } = req.body;
   try {
-    const result = await db.query(
-      'INSERT INTO stories (title, description, metadata) VALUES ($1, $2, $3) RETURNING *',
-      [title, description, metadata || {}]
-    );
-    res.status(201).json(result.rows[0]);
+    const story = await Story.create(req.body);
+    res.status(201).json(story);
   } catch (err) {
     res.status(500).json({ error: 'Failed to create story', details: err.message });
   }
@@ -18,8 +15,8 @@ exports.createStory = async (req, res) => {
 // @desc Fetch all stories
 exports.getStories = async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM stories ORDER BY created_at DESC');
-    res.json(result.rows);
+    const stories = await Story.getAll();
+    res.json(stories);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch stories' });
   }
@@ -28,14 +25,8 @@ exports.getStories = async (req, res) => {
 // @desc Fetch all 'leaf' chapters (ends of branches) for a story
 exports.getBranches = async (req, res) => {
   try {
-    const query = `
-      SELECT c.* FROM chapters c
-      WHERE c.story_id = $1
-      AND NOT EXISTS (SELECT 1 FROM chapters child WHERE child.parent_id = c.id)
-      ORDER BY c.created_at DESC
-    `;
-    const result = await db.query(query, [req.params.id]);
-    res.json(result.rows);
+    const branches = await Chapter.getLeafNodes(req.params.id);
+    res.json(branches);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch story branches' });
   }
@@ -44,24 +35,8 @@ exports.getBranches = async (req, res) => {
 // @desc Fetch chapters with their ordered scenes
 exports.getChapters = async (req, res) => {
   try {
-    // 1. Fetch chapters
-    const chaptersResult = await db.query('SELECT * FROM chapters WHERE story_id = $1', [req.params.id]);
-    const chapters = chaptersResult.rows;
-
-    // 2. Fetch all scenes for these chapters
-    const scenesResult = await db.query(
-      'SELECT * FROM scenes WHERE chapter_id IN (SELECT id FROM chapters WHERE story_id = $1) ORDER BY scene_order ASC', 
-      [req.params.id]
-    );
-    const scenes = scenesResult.rows;
-
-    // 3. Attach scenes to chapters
-    const combined = chapters.map(chapter => ({
-      ...chapter,
-      scenes: scenes.filter(s => s.chapter_id === chapter.id)
-    }));
-
-    res.json(combined);
+    const chapters = await Chapter.getByStoryId(req.params.id);
+    res.json(chapters);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch chapters and scenes' });
   }
@@ -70,64 +45,60 @@ exports.getChapters = async (req, res) => {
 // @desc Create a new chapter (starts with Scene 1)
 exports.createChapter = async (req, res) => {
   const { title, content, parent_id } = req.body;
-  const client = await db.pool.connect();
   try {
-    await client.query('BEGIN');
+    const chapter = await Chapter.create({ 
+      story_id: req.params.id, 
+      title, 
+      content, 
+      parent_id 
+    });
     
-    // Create Chapter with optional parent_id
-    const chapResult = await client.query(
-      'INSERT INTO chapters (story_id, title, content, parent_id) VALUES ($1, $2, $3, $4) RETURNING *',
-      [req.params.id, title, content, parent_id || null]
-    );
-    const chapter = chapResult.rows[0];
+    // Background Trigger: Summarize the PARENT chapter now that it's closed
+    if (parent_id) {
+      summarizeChapterInBackground(parent_id, req.body.metadata);
+    }
 
-    // Create First Scene
-    await client.query(
-      'INSERT INTO scenes (chapter_id, content, scene_order) VALUES ($1, $2, 1)',
-      [chapter.id, content]
-    );
-
-    await client.query('COMMIT');
-    res.status(201).json({ ...chapter, scenes: [{ content, scene_order: 1 }] });
+    res.status(201).json(chapter);
   } catch (err) {
-    await client.query('ROLLBACK');
     res.status(500).json({ error: 'Failed to create chapter with scene' });
-  } finally {
-    client.release();
   }
 };
+
+// Helper function for background processing
+async function summarizeChapterInBackground(chapterId, metadata) {
+  try {
+    const chapter = await Chapter.getById(chapterId);
+    if (!chapter || chapter.summary) return; // already summarized
+
+    console.log(`[Chronicler] Summarizing Chapter: ${chapter.title}...`);
+    const summary = await ai.generateSummary(chapter.content, metadata);
+    
+    // Save summary back to DB
+    const db = require('../../config/db');
+    await db.query('UPDATE chapters SET summary = $1 WHERE id = $2', [summary, chapterId]);
+    console.log(`[Chronicler] Chapter ${chapterId} successfully summarized.`);
+  } catch (err) {
+    console.error('[Chronicler] Background Summarization failed:', err.message);
+  }
+}
 
 // @desc Fork a chapter (starts with Scene 1 of the new chapter)
 exports.forkChapter = async (req, res) => {
   const { id } = req.params;
   const { title, content } = req.body;
-  const client = await db.pool.connect();
   try {
-    await client.query('BEGIN');
-
-    const parent = await client.query('SELECT story_id FROM chapters WHERE id = $1', [id]);
-    if (parent.rows.length === 0) throw new Error('Parent not found');
+    const parent = await Chapter.getById(id);
+    if (!parent) return res.status(404).json({ error: 'Parent not found' });
     
-    const story_id = parent.rows[0].story_id;
-
-    const chapResult = await client.query(
-      'INSERT INTO chapters (story_id, parent_id, title, content) VALUES ($1, $2, $3, $4) RETURNING *',
-      [story_id, id, title, content]
-    );
-    const chapter = chapResult.rows[0];
-
-    await client.query(
-      'INSERT INTO scenes (chapter_id, content, scene_order) VALUES ($1, $2, 1)',
-      [chapter.id, content]
-    );
-
-    await client.query('COMMIT');
-    res.status(201).json({ ...chapter, scenes: [{ content, scene_order: 1 }] });
+    const chapter = await Chapter.create({ 
+      story_id: parent.story_id, 
+      title, 
+      content, 
+      parent_id: id 
+    });
+    res.status(201).json(chapter);
   } catch (err) {
-    await client.query('ROLLBACK');
     res.status(500).json({ error: 'Failed to fork chapter with scene' });
-  } finally {
-    client.release();
   }
 };
 
@@ -136,14 +107,8 @@ exports.addScene = async (req, res) => {
   const { content } = req.body;
   const { chapterId } = req.params;
   try {
-    const orderResult = await db.query('SELECT MAX(scene_order) FROM scenes WHERE chapter_id = $1', [chapterId]);
-    const nextOrder = (orderResult.rows[0].max || 0) + 1;
-    
-    const result = await db.query(
-      'INSERT INTO scenes (chapter_id, content, scene_order) VALUES ($1, $2, $3) RETURNING *',
-      [chapterId, content, nextOrder]
-    );
-    res.status(201).json(result.rows[0]);
+    const scene = await Chapter.addScene(chapterId, content);
+    res.status(201).json(scene);
   } catch (err) {
     res.status(500).json({ error: 'Failed to add scene' });
   }

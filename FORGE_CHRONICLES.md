@@ -31,4 +31,16 @@ This was the day we woke up the silicon. We moved away from total reliance on th
 **Current Status:** The engine is stable. The map is clear. The GPU is hot. We are ready for the next leap.
 
 ---
-*Vance (The Chronicler): "The ink is dry on our first chapters. The rest is yet to be written."*
+
+## 🏗️ Entry 4: Structural Hardening & The Reader's Gate (v3.5)
+**The Professional Pivot**
+As we prepared for scale, we realized that "Code Monoliths" weren't just in the frontend. We performed a **Surgical Model Extraction**, moving all SQL logic out of the controllers and into dedicated Data Models. 
+
+**The Infinite Loop:** We faced a major "White Screen" crisis during the component split. We learned that React is unforgiving with icon imports and prop-chains. To restore absolute stability, we temporarily **Restored the Monolith** into a single, hardened `App.jsx`, implementing "Safety Counters" to prevent infinite loops during narrative reconstruction.
+
+**The Breakthrough:** We implemented the **"Reader vs. Draft"** separation. For the first time, StoryForge supports a pure "Narrative Archive" mode, allowing users to consume history without accidentally altering it. We also enabled **Infinite Context** via the **Background Chronicler**, which automatically summarizes old chapters to keep the local GPU from hitting its token ceiling.
+
+**Current Status:** The architecture is now "Steel-Framed." Data is decoupled, navigation is hardened, and the engine is ready for multi-page manuscripts.
+
+---
+*Vance (The Chronicler): "We have fortified the walls. The library is now a fortress of stable timelines."*
