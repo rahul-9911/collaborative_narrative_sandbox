@@ -17,7 +17,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - AI_PROVIDER=${AI_PROVIDER}
       - LOCAL_AI_URL=http://ollama:11434
-      - LOCAL_MODEL_NAME=${LOCAL_MODEL_NAME}
+      - LOCAL_MODEL_NAME=gemma4:e4b
     depends_on:
       - db
       - ollama

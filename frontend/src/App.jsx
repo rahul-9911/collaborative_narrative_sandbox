@@ -245,7 +245,7 @@ const App = () => {
             </h2>
           </div>
           {view === 'quest' && (
-            <button onClick={() => setView('branches')} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-amber-500 transition-all bg-white/5 px-6 py-3 rounded-full border border-white/5">
+            <button onClick={() => loadWorldBranches(currentStory)} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-amber-500 transition-all bg-white/5 px-6 py-3 rounded-full border border-white/5">
               <Map className="w-4 h-4" /> Timeline Map
             </button>
           )}
