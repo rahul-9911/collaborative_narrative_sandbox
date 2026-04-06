@@ -121,18 +121,7 @@ const App = () => {
         
         if (path.length === 0) throw new Error('Path reconstruction failed.');
 
-        const lastChapter = path[path.length - 1];
-        const fullContent = (lastChapter.scenes || []).map(s => s?.content || '').join('\n\n') || lastChapter.content || '';
-        
-        let choices = [];
-        try {
-          const choiceData = await api.generateChoices({ content: fullContent, metadata: story.metadata });
-          choices = choiceData.choices || [];
-        } catch (cErr) {
-          choices = ["Continue exploring", "Try another path", "Wait for someone"];
-        }
-        
-        setStoryPath(path.map((c, i) => i === path.length - 1 ? { ...c, choices } : c));
+        setStoryPath(path.map((c, i) => i === path.length - 1 ? { ...c, choices: [] } : c));
         setIsReadOnly(true); 
         setView('quest'); 
       }
@@ -265,7 +254,7 @@ const App = () => {
           )}
 
           {view === 'home' && <HomeView setView={setView} />}
-          {view === 'library' && <LibraryView stories={stories} setView={setView} loadWorldBranches={loadWorldBranches} />}
+          {view === 'library' && <LibraryView stories={stories} setView={setView} loadWorldBranches={loadWorldBranches} loading={loading} />}
           {view === 'branches' && (
             <BranchesView 
               currentStory={currentStory} allChapters={allChapters} startQuestAtNode={startQuestAtNode}

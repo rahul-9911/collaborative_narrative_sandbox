@@ -73,4 +73,19 @@ Today we faced a subtle but total system blackout—the "White Screen of Death."
 **Current Status:** Architecture verified. Documentation restored and additive. The engine is primed for V1 delivery.
 
 ---
-*Vance (The Archivist): "The record is complete. Every mistake has been turned into a fortress wall."*
+
+## 🚀 Entry 7: The Speed of Thought (Instant Read)
+**The Bottleneck Shattered**
+We identified a critical performance leak: the engine was invoking the AI model to generate choices *before* rendering existing chapters. This created a "Cold Start" lag that made the UI feel stuck.
+
+**The Breakthrough:** We implemented **"Instant Read."** Path reconstruction is now a pure database operation, making existing Arcs load near-instantly. The AI is now only invoked on-demand when the user is ready to draft or conclure a chapter.
+
+**The Hardening:**
+- **Button Debouncing:** Added `disabled={loading}` to all primary navigation and action buttons.
+- **Prop-Chain Audit:** Recovered from a ReferenceError in `LibraryView` caused by a missing `loading` prop.
+- **Visual Feedback:** All buttons now provide immediate textual feedback ("OPENING...", "RECONSTRUCTING...") to prevent redundant clicks.
+
+**Current Status:** The engine is "Snappy." Latency is effectively zero for reading, and user interactions are protected against race conditions.
+
+---
+*Vance (The Archivist): "We have synchronized the pulse of the machine with the speed of the author's mind."*

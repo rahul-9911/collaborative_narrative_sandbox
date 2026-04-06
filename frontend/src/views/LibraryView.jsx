@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Wind, ChevronRight } from 'lucide-react';
 
-const LibraryView = ({ stories, setView, loadWorldBranches }) => {
+const LibraryView = ({ stories, setView, loadWorldBranches, loading }) => {
   return (
     <div className="animate-sf-reveal">
       <div className="flex items-center justify-between mb-16">
@@ -9,8 +9,12 @@ const LibraryView = ({ stories, setView, loadWorldBranches }) => {
           <h2 className="text-5xl font-black text-white tracking-tighter uppercase italic">The Library</h2>
           <p className="text-stone-600 font-bold uppercase tracking-widest text-[10px] mt-2">Resume a narrative or explore parallel arcs</p>
         </div>
-        <button onClick={() => setView('architect')} className="sf-button-primary text-[10px] px-6 py-3">
-          <Plus className="w-4 h-4" /> Create New World
+        <button 
+          onClick={() => setView('architect')} 
+          disabled={loading}
+          className="sf-button-primary text-[10px] px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Plus className="w-4 h-4" /> {loading ? 'PREPARING...' : 'Create New World'}
         </button>
       </div>
       
@@ -35,9 +39,10 @@ const LibraryView = ({ stories, setView, loadWorldBranches }) => {
             </p>
             <button 
               onClick={() => loadWorldBranches(story)} 
-              className="mt-auto sf-button-primary w-full flex items-center justify-center gap-3"
+              disabled={loading}
+              className="mt-auto sf-button-primary w-full flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Access Timeline <ChevronRight className="w-5 h-5" />
+              {loading ? 'OPENING...' : 'Access Timeline'} <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         ))}

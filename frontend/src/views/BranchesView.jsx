@@ -46,17 +46,22 @@ const BranchesView = ({
               <div className="relative group">
                 <button 
                   onClick={() => startQuestAtNode(currentStory, chapter)} 
+                  disabled={loading}
                   className={`mt-2 p-5 bg-white/5 border rounded-2xl shadow-2xl transition-all min-w-[180px] text-center
                     ${forkingNode?.id === chapter?.id ? 'border-amber-500 bg-amber-500/10' : 'border-white/10 hover:border-white/30'}
+                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >
                   <div className="text-[9px] uppercase tracking-widest text-amber-500/50 font-black mb-2">Arc {depth + 1}</div>
-                  <div className="text-xs font-black text-white truncate max-w-[150px] uppercase tracking-tighter">{chapter?.title || 'Untitled Arc'}</div>
+                  <div className="text-xs font-black text-white truncate max-w-[150px] uppercase tracking-tighter">
+                    {loading ? 'RECONSTRUCTING...' : (chapter?.title || 'Untitled Arc')}
+                  </div>
                 </button>
                 
                 <button 
                   onClick={(e) => { e.stopPropagation(); prepareFork(chapter); }}
-                  className="absolute -right-3 top-1/2 -translate-y-1/2 bg-black border border-white/10 p-2 rounded-xl text-stone-500 hover:text-amber-500 hover:border-amber-500/50 transition-all opacity-0 group-hover:opacity-100 shadow-xl"
+                  disabled={loading}
+                  className="absolute -right-3 top-1/2 -translate-y-1/2 bg-black border border-white/10 p-2 rounded-xl text-stone-500 hover:text-amber-500 hover:border-amber-500/50 transition-all opacity-0 group-hover:opacity-100 shadow-xl disabled:opacity-0"
                   title="Branch Narrative"
                 >
                   <GitBranch className="w-4 h-4" />
