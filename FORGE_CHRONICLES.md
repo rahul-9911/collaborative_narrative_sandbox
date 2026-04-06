@@ -43,4 +43,34 @@ As we prepared for scale, we realized that "Code Monoliths" weren't just in the 
 **Current Status:** The architecture is now "Steel-Framed." Data is decoupled, navigation is hardened, and the engine is ready for multi-page manuscripts.
 
 ---
-*Vance (The Chronicler): "We have fortified the walls. The library is now a fortress of stable timelines."*
+
+## 🛡️ Entry 5: Surgical Hardening & The Blast Radius (v3.5+)
+**The Triple-Check Standard**
+We faced a critical "White Screen of Death" crisis caused by a "ghost prop" (`handleManualFork`) that existed in the UI but was never defined in the state. This one-line oversight proved that "Rapid Prototyping" must now give way to "Surgical Scrutiny."
+
+**The Breakthrough:** We implemented the **"Triple-Check"** mandate for all architectural changes. Every line of code added or removed must be verified against the entire component inventory. We hardened the `QuestView` with robust null-safety for narrative rendering and fully restored MVC boundaries by moving the `Chronicler` summarization logic into the dedicated Chapter model.
+
+**The Network Lock:** We resolved the "Port 11434" conflict by permanently disabling the host-level Ollama service in favor of the containerized environment, ensuring a stable bridge to the RTX 3060.
+
+**Current Status:** The engine is stable, the team is disciplined, and the "Blast Radius" of every change is now scrutinized before deployment. StoryForge is ready for V1 hardening.
+
+---
+
+## 🌩️ Entry 6: The Ghost in the Prop-Chain (Session 6)
+**The Cost of Inattention**
+Today we faced a subtle but total system blackout—the "White Screen of Death." It wasn't caused by a complex architectural failure, but by a "ghost prop" (`handleManualFork`) that was being passed into the render tree without a corresponding function definition.
+
+**The Lesson of Additive Memory:** During the documentation restoration, we nearly lost our entire project history by overwriting critical files instead of appending to them. This reinforced the **Vance Mandate**: Documentation is a living record of evolution, not a temporary status report. 
+
+**The Loop Crisis:** We learned that even an expert team can fall into "Diagnostic Loops" (repeatedly polling logs) if they lose sight of the user's direct mandates. We have implemented a "Circuit Breaker" protocol: If progress stalls, we take a step back and re-read the primary objective.
+
+**Today's Hardening:**
+- **WSoD Resolved:** Removed the non-existent `handleManualFork` prop.
+- **MVC Hardened:** Moved the Chronicler's raw SQL update logic into the `Chapter` model.
+- **Frontend Resilient:** Added null-safety to all `content.split` operations in `QuestView.jsx`.
+- **Environment Locked:** Confirmed host-level port 11434 exclusivity for the Docker container.
+
+**Current Status:** Architecture verified. Documentation restored and additive. The engine is primed for V1 delivery.
+
+---
+*Vance (The Archivist): "The record is complete. Every mistake has been turned into a fortress wall."*

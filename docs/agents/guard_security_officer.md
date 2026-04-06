@@ -9,6 +9,7 @@
 - Securing the EKS control plane and worker nodes.
 - Defining network policies for multi-tenancy.
 - IAM role management for user-deployed workloads.
+- **Session 6 Hardening:** Overseeing zero-trust access to the Local AI (Ollama) container.
 
 ## Security Principles
 - Zero-trust architecture.

@@ -15,9 +15,9 @@ services:
       - DB_PORT=${DB_PORT}
       - DB_HOST=db
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - AI_PROVIDER=LOCAL
+      - AI_PROVIDER=${AI_PROVIDER}
       - LOCAL_AI_URL=http://ollama:11434
-      - LOCAL_MODEL_NAME=gemma3:4b
+      - LOCAL_MODEL_NAME=${LOCAL_MODEL_NAME}
     depends_on:
       - db
       - ollama
@@ -40,7 +40,9 @@ services:
     ports:
       - "11434:11434"
     networks:
-      - storyforge_net
+      storyforge_net:
+        aliases:
+          - ollama
     deploy:
       resources:
         reservations:

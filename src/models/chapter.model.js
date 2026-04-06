@@ -70,6 +70,10 @@ const Chapter = {
   async getById(id) {
     const result = await db.query('SELECT * FROM chapters WHERE id = $1', [id]);
     return result.rows[0];
+  },
+
+  async updateSummary(id, summary) {
+    return await db.query('UPDATE chapters SET summary = $1 WHERE id = $2', [summary, id]);
   }
 };
 

@@ -73,9 +73,8 @@ async function summarizeChapterInBackground(chapterId, metadata) {
     console.log(`[Chronicler] Summarizing Chapter: ${chapter.title}...`);
     const summary = await ai.generateSummary(chapter.content, metadata);
     
-    // Save summary back to DB
-    const db = require('../../config/db');
-    await db.query('UPDATE chapters SET summary = $1 WHERE id = $2', [summary, chapterId]);
+    // Save summary back to DB via Model
+    await Chapter.updateSummary(chapterId, summary);
     console.log(`[Chronicler] Chapter ${chapterId} successfully summarized.`);
   } catch (err) {
     console.error('[Chronicler] Background Summarization failed:', err.message);

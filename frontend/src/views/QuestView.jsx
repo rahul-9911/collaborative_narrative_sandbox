@@ -6,14 +6,13 @@ const QuestView = ({
   storyPath = [], 
   loading, 
   handleChoice, 
-  handleManualFork, 
   customInput, 
   setCustomInput, 
   setView,
   isReadOnly,
   prepareFork
 }) => {
-  // CRASH PROTECTION: If storyPath isn't ready, show loading instead of white screen
+  // Integrity Guard: Show loading state instead of crashing if path is being built
   if (!storyPath || (storyPath.length === 0 && !loading)) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-6">
@@ -43,14 +42,20 @@ const QuestView = ({
             <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/40"></div>
             <span className="text-[9px] uppercase tracking-[0.6em] font-black">Timeline Arc {index + 1}</span>
             {!isReadOnly && (
-              <button onClick={() => handleManualFork(chapter)} title="Fork Timeline" className="p-3 hover:bg-white/10 rounded-2xl text-stone-500 hover:text-amber-500 transition-all">
+              <button 
+                onClick={() => handleChoice(null, chapter)} 
+                className="p-3 hover:bg-white/10 rounded-2xl text-stone-500 hover:text-amber-500 transition-all"
+                title="Branch from here"
+              >
                 <GitBranch className="w-5 h-5" />
               </button>
             )}
             <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/40"></div>
           </div>
           
-          <h2 className="text-6xl font-black text-white mb-16 tracking-tighter italic glow-text">{chapter?.title || 'Untitled Arc'}</h2>
+          <h2 className="text-6xl font-black text-white mb-16 tracking-tighter italic glow-text">
+            {chapter?.title || 'Untitled Arc'}
+          </h2>
           
           <div className="space-y-24">
             {(chapter?.scenes && chapter.scenes.length > 0) ? (
@@ -60,13 +65,13 @@ const QuestView = ({
                     Page {sIdx + 1}
                   </div>
                   <div className="space-y-10 text-2xl leading-[1.9] text-stone-400 font-serif">
-                    {(scene?.content || '').split('\n\n').map((para, pIdx) => <p key={pIdx}>{para}</p>)}
+                    {(scene?.content || '').split('\n\n').filter(Boolean).map((para, pIdx) => <p key={pIdx}>{para}</p>)}
                   </div>
                 </div>
               ))
             ) : (
               <div className="text-2xl leading-[1.9] text-stone-400 font-serif">
-                {(chapter?.content || '').split('\n\n').map((para, i) => <p key={i} className="animate-reveal mb-8">{para}</p>)}
+                {(chapter?.content || '').split('\n\n').filter(Boolean).map((para, i) => <p key={i} className="animate-reveal mb-8">{para}</p>)}
               </div>
             )}
           </div>
@@ -90,8 +95,8 @@ const QuestView = ({
               
               <div className="sf-card p-16 space-y-8 bg-amber-500/[0.02] border-amber-500/10">
                 <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Forge a Different Path?</h3>
-                <p className="text-stone-500 max-w-md mx-auto leading-relaxed">
-                  You are currently viewing a fixed point in history. You can fracture this timeline into a new, collaborative draft.
+                <p className="text-stone-500 max-w-md mx-auto leading-relaxed text-sm">
+                  You are viewing a finalized segment. Continue drafting by creating a new narrative branch.
                 </p>
                 <button 
                   onClick={() => storyPath.length > 0 && prepareFork(storyPath[storyPath.length - 1])}
@@ -110,9 +115,15 @@ const QuestView = ({
               
               <div className="grid gap-4">
                 {storyPath.length > 0 && (storyPath[storyPath.length - 1].choices || []).map((choice, i) => (
-                  <button key={i} onClick={() => handleChoice(choice)} className="sf-card p-8 group flex items-center justify-between text-left hover:scale-[1.01]">
+                  <button 
+                    key={i} 
+                    onClick={() => handleChoice(choice)} 
+                    className="sf-card p-8 group flex items-center justify-between text-left hover:scale-[1.01]"
+                  >
                     <span className="text-xl font-bold text-stone-300 group-hover:text-white transition-colors">{choice}</span>
-                    <div className="bg-white/5 p-4 rounded-2xl group-hover:bg-amber-500 transition-all"><ChevronRight className="w-6 h-6 text-stone-600 group-hover:text-black" /></div>
+                    <div className="bg-white/5 p-4 rounded-2xl group-hover:bg-amber-500 transition-all">
+                      <ChevronRight className="w-6 h-6 text-stone-600 group-hover:text-black" />
+                    </div>
                   </button>
                 ))}
               </div>
@@ -125,7 +136,10 @@ const QuestView = ({
                   className="w-full bg-transparent border-none outline-none text-2xl font-serif min-h-[160px] resize-none text-white selection:bg-amber-500/30"
                 />
                 <div className="flex justify-end pt-4 border-t border-white/5">
-                  <button onClick={() => { if (customInput) handleChoice(customInput); }} className="bg-white text-black px-10 py-4 rounded-[1.5rem] hover:bg-amber-500 transition-all flex items-center gap-3 font-black uppercase text-xs tracking-widest active:scale-95 shadow-xl">
+                  <button 
+                    onClick={() => { if (customInput) handleChoice(customInput); }} 
+                    className="bg-white text-black px-10 py-4 rounded-[1.5rem] hover:bg-amber-500 transition-all flex items-center gap-3 font-black uppercase text-xs tracking-widest active:scale-95 shadow-xl"
+                  >
                     Commit to Timeline <Play className="w-5 h-5 fill-current" />
                   </button>
                 </div>

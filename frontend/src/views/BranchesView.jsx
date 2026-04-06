@@ -15,7 +15,7 @@ const BranchesView = ({
   setCustomInput 
 }) => {
 
-  // CRASH PROTECTION: If allChapters is missing or null
+  // Integrity Guard
   if (!allChapters) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-6">
@@ -26,6 +26,7 @@ const BranchesView = ({
   }
 
   const renderTreeVertical = (parentId = null, depth = 0) => {
+    if (depth > 20) return null; // Safety depth
     const children = allChapters.filter(c => c?.parent_id === parentId);
     if (children.length === 0) return null;
     return (
@@ -74,11 +75,6 @@ const BranchesView = ({
       <div className="mb-20">
         <h2 className="text-7xl font-black text-white tracking-tighter mb-6 uppercase italic">{currentStory?.title || 'World Map'}</h2>
         <p className="text-stone-600 font-black uppercase tracking-[0.4em] text-[10px] mb-12">Select a point in the timeline to inhabit</p>
-        <div className="flex justify-center gap-4">
-          <button onClick={() => startQuestAtNode(currentStory, null)} className="sf-button-primary flex items-center gap-3 mx-auto">
-            <Plus className="w-5 h-5" /> Fracture New Arc
-          </button>
-        </div>
       </div>
       
       <div className="inline-block min-w-full p-16 bg-white/[0.02] rounded-[5rem] border border-white/5 shadow-inner">
@@ -115,7 +111,7 @@ const BranchesView = ({
             ) : (
               <div className="space-y-4">
                 <p className="text-[10px] uppercase tracking-[0.4em] font-black text-stone-700 mb-8">Choose New Narrative Path</p>
-                {forkChoices.map((choice, i) => (
+                {forkChoices?.map((choice, i) => (
                   <button 
                     key={i} 
                     onClick={() => handleChoice(choice, forkingNode)} 
