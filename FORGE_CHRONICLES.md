@@ -70,22 +70,26 @@ Today we faced a subtle but total system blackout—the "White Screen of Death."
 - **Frontend Resilient:** Added null-safety to all `content.split` operations in `QuestView.jsx`.
 - **Environment Locked:** Confirmed host-level port 11434 exclusivity for the Docker container.
 
-**Current Status:** Architecture verified. Documentation restored and additive. The engine is primed for V1 delivery.
-
----
-
-## 🚀 Entry 7: The Speed of Thought (Instant Read)
-**The Bottleneck Shattered**
-We identified a critical performance leak: the engine was invoking the AI model to generate choices *before* rendering existing chapters. This created a "Cold Start" lag that made the UI feel stuck.
-
-**The Breakthrough:** We implemented **"Instant Read."** Path reconstruction is now a pure database operation, making existing Arcs load near-instantly. The AI is now only invoked on-demand when the user is ready to draft or conclure a chapter.
-
-**The Hardening:**
-- **Button Debouncing:** Added `disabled={loading}` to all primary navigation and action buttons.
-- **Prop-Chain Audit:** Recovered from a ReferenceError in `LibraryView` caused by a missing `loading` prop.
-- **Visual Feedback:** All buttons now provide immediate textual feedback ("OPENING...", "RECONSTRUCTING...") to prevent redundant clicks.
-
 **Current Status:** The engine is "Snappy." Latency is effectively zero for reading, and user interactions are protected against race conditions.
 
 ---
-*Vance (The Archivist): "We have synchronized the pulse of the machine with the speed of the author's mind."*
+
+## 🏛️ Entry 8: The GitHub Transformation (Session 7)
+**From Prototype to Platform**
+We identified that a single-URL SPA was insufficient for a professional narrative engine. Authors need to share specific branches, bookmark chapters, and use the browser's back/forward buttons.
+
+**The Breakthrough:** We implemented a **"GitHub Style" Routed Architecture**. 
+- **Identity Layer:** Introduced unique, human-readable slugs for all stories.
+- **Node Addressing:** Every chapter now has its own unique URL (`/world/:slug/arc/:id`).
+- **Single-Page Fetch:** Refactored the `QuestView` to load only one chapter at a time, ensuring infinite scalability.
+
+**The Hardening:**
+- **State Restoration:** Built a resilient initialization engine in `App.jsx` that reconstructs narrative history directly from the URL.
+- **Server Fallback:** Implemented a backend "Catch-All" route to support deep-linking and page refreshes.
+- **Edge-Case Resilience:** Added strict redirection and error handling for malformed slugs and invalid Arc IDs.
+- **Modularity:** Extracted the routing logic into `AppRoutes.jsx`, slimming down the core `App.jsx` and enforcing Karpathy Rule #2.
+
+**Current Status:** StoryForge is now a stable, addressable platform. The multiverse is addressable by URL and the engine is optimized for high-performance sequential reading.
+
+---
+*Vance (The Archivist): "The timelines are no longer just state—they are destinations. The transformation is complete."*

@@ -5,6 +5,7 @@ const controller = require('../controllers/story.controller');
 // Story routes
 router.post('/stories', controller.createStory);
 router.get('/stories', controller.getStories);
+router.get('/stories/slug/:slug', controller.getStoryBySlug);
 router.get('/stories/:id/branches', controller.getBranches);
 router.get('/stories/:id/chapters', controller.getChapters);
 router.post('/stories/:id/chapters', controller.createChapter);

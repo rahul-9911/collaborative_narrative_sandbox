@@ -17,6 +17,11 @@ export const api = {
     return handleResponse(res);
   },
 
+  async getStoryBySlug(slug) {
+    const res = await fetch(`/api/stories/slug/${slug}`);
+    return handleResponse(res);
+  },
+
   async createStory(storyData) {
     const res = await fetch('/api/stories', {
       method: 'POST',

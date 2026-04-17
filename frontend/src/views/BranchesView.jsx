@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, GitBranch, RefreshCw, ChevronRight, Play, CornerDownRight } from 'lucide-react';
 
 const BranchesView = ({ 
@@ -12,11 +13,13 @@ const BranchesView = ({
   forkChoices = [], 
   handleChoice, 
   customInput, 
-  setCustomInput 
+  setCustomInput,
+  cancelDrafting 
 }) => {
+  const navigate = useNavigate();
 
   // Integrity Guard
-  if (!allChapters) {
+  if (!allChapters || !currentStory) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-6">
         <RefreshCw className="w-12 h-12 text-stone-800 animate-spin" />
@@ -45,7 +48,7 @@ const BranchesView = ({
               
               <div className="relative group">
                 <button 
-                  onClick={() => startQuestAtNode(currentStory, chapter)} 
+                  onClick={() => navigate(`/world/${currentStory.slug}/arc/${chapter.id}`)} 
                   disabled={loading}
                   className={`mt-2 p-5 bg-white/5 border rounded-2xl shadow-2xl transition-all min-w-[180px] text-center
                     ${forkingNode?.id === chapter?.id ? 'border-amber-500 bg-amber-500/10' : 'border-white/10 hover:border-white/30'}
@@ -94,7 +97,6 @@ const BranchesView = ({
                 <GitBranch className="w-8 h-8 text-amber-500" />
                 <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">New Branch</h2>
               </div>
-              <button onClick={() => setForkingNode(null)} className="text-stone-500 hover:text-white font-black uppercase text-xs tracking-widest">Cancel</button>
             </div>
 
             <div className="sf-card p-12 mb-12 border-amber-500/20 bg-amber-500/[0.02]">
@@ -134,7 +136,13 @@ const BranchesView = ({
                     placeholder="Lead the narrative yourself..." 
                     className="w-full bg-transparent border-none outline-none text-xl font-serif min-h-[120px] resize-none p-4 text-white"
                   />
-                  <div className="flex justify-end p-2">
+                  <div className="flex justify-end gap-4 p-2">
+                    <button 
+                      onClick={cancelDrafting}
+                      className="border border-white/10 text-stone-400 p-4 rounded-2xl hover:bg-white/5 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest active:scale-95"
+                    >
+                      Cancel Branch
+                    </button>
                     <button 
                       onClick={() => { if (customInput) handleChoice(customInput, forkingNode); }} 
                       className="bg-white text-black p-4 rounded-2xl hover:bg-amber-500 transition-all flex items-center gap-2 font-black uppercase text-[10px] tracking-widest active:scale-95 shadow-xl"

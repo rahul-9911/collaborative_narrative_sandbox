@@ -13,6 +13,10 @@ We have successfully decoupled the data layer and implemented narrative compress
 - **Hybrid AI Service:** Robust multi-provider architecture supporting Gemini 3.1 and Local Gemma 3 (4B/12B).
 - **Navigation Resilience:** Hardened path reconstruction with loop protection and null-safe component rendering. (Stabilized by Sequence)
 
+## Behavioral Standards (Mandatory)
+- **Karpathy Guidelines:** All development must follow the rules in `docs/guidelines/KARPATHY.md` (Think before coding, Simplicity first, Surgical changes, Goal-driven execution).
+- **Triple-Check Mandate:** Every code change must be audited for imports and prop-chains by Struct.
+
 ## User Flow & UI Landscape (The Operational Map)
 ### 1. The Welcome Gate (Home View)
 - **"Access the Library":** Opens the collection of existing story worlds.

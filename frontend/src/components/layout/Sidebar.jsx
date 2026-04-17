@@ -1,10 +1,13 @@
 import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Book, Compass, Library, Plus, Sliders } from 'lucide-react';
 
-const Sidebar = ({ view, setView, resetPacing, pacing, setPacing, showPacing }) => {
+const Sidebar = ({ resetPacing, pacing, setPacing, showPacing }) => {
+  const navigate = useNavigate();
+
   return (
     <aside className="w-20 lg:w-72 bg-black border-r border-white/5 flex flex-col py-10 sticky top-0 h-screen z-50">
-      <div className="px-8 mb-12 group cursor-pointer" onClick={() => { setView('home'); resetPacing(); }}>
+      <div className="px-8 mb-12 group cursor-pointer" onClick={() => { navigate('/home'); resetPacing(); }}>
         <div className="flex items-center gap-3">
           <div className="bg-amber-500 p-2 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)]">
             <Book className="w-6 h-6 text-black" />
@@ -14,27 +17,30 @@ const Sidebar = ({ view, setView, resetPacing, pacing, setPacing, showPacing }) 
       </div>
       
       <nav className="flex-1 space-y-2 px-4">
-        <button 
-          onClick={() => { setView('home'); resetPacing(); }} 
-          className={`sf-nav-item w-full ${view === 'home' ? 'sf-nav-item-active' : 'text-stone-500 hover:text-white'}`}
+        <NavLink 
+          to="/home" 
+          onClick={resetPacing} 
+          className={({ isActive }) => `sf-nav-item w-full ${isActive ? 'sf-nav-item-active' : 'text-stone-500 hover:text-white'}`}
         >
           <Compass className="w-5 h-5" />
           <span className="hidden lg:block">Welcome</span>
-        </button>
-        <button 
-          onClick={() => { setView('library'); resetPacing(); }} 
-          className={`sf-nav-item w-full ${view === 'library' ? 'sf-nav-item-active' : 'text-stone-500 hover:text-white'}`}
+        </NavLink>
+        <NavLink 
+          to="/library" 
+          onClick={resetPacing} 
+          className={({ isActive }) => `sf-nav-item w-full ${isActive ? 'sf-nav-item-active' : 'text-stone-500 hover:text-white'}`}
         >
           <Library className="w-5 h-5" />
           <span className="hidden lg:block">Library</span>
-        </button>
-        <button 
-          onClick={() => { setView('architect'); resetPacing(); }} 
-          className={`sf-nav-item w-full ${view === 'architect' ? 'sf-nav-item-active' : 'text-stone-500 hover:text-white'}`}
+        </NavLink>
+        <NavLink 
+          to="/architect" 
+          onClick={resetPacing} 
+          className={({ isActive }) => `sf-nav-item w-full ${isActive ? 'sf-nav-item-active' : 'text-stone-500 hover:text-white'}`}
         >
           <Plus className="w-5 h-5" />
           <span className="hidden lg:block">New Story</span>
-        </button>
+        </NavLink>
       </nav>
 
       {showPacing && (

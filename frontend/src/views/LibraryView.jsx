@@ -38,7 +38,10 @@ const LibraryView = ({ stories, setView, loadWorldBranches, loading }) => {
               {story.description}
             </p>
             <button 
-              onClick={() => loadWorldBranches(story)} 
+              onClick={() => {
+                loadWorldBranches(story);
+                setView(`world/${story.slug}`);
+              }} 
               disabled={loading}
               className="mt-auto sf-button-primary w-full flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >

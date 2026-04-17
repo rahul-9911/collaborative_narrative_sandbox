@@ -22,6 +22,17 @@ exports.getStories = async (req, res) => {
   }
 };
 
+// @desc Fetch a story by its slug
+exports.getStoryBySlug = async (req, res) => {
+  try {
+    const story = await Story.getBySlug(req.params.slug);
+    if (!story) return res.status(404).json({ error: 'Story not found' });
+    res.json(story);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch story' });
+  }
+};
+
 // @desc Fetch all 'leaf' chapters (ends of branches) for a story
 exports.getBranches = async (req, res) => {
   try {
