@@ -21,6 +21,7 @@ const AppRoutes = ({
   customInput,
   setCustomInput,
   storyPath,
+  adjacentArcs,
   isReadOnly,
   cancelDrafting,
   newStory,
@@ -45,7 +46,7 @@ const AppRoutes = ({
       } />
       <Route path="/world/:slug/arc/:id" element={
         <QuestView 
-          currentStory={currentStory} storyPath={storyPath} loading={loading}
+          currentStory={currentStory} storyPath={storyPath} allChapters={allChapters} loading={loading}
           handleChoice={handleChoice}
           customInput={customInput} setCustomInput={setCustomInput} setView={(v) => navigate(`/${v}`)}
           isReadOnly={isReadOnly} prepareFork={prepareFork}

@@ -11,8 +11,29 @@ const App = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // --- STATE DECLARATIONS FIRST ---
   const [view, setView] = useState('home'); 
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [stories, setStories] = useState([]);
+  const [currentStory, setCurrentStory] = useState(null);
+  const [allChapters, setAllChapters] = useState([]);
+  const [storyPath, setStoryPath] = useState([]);
+  const [adjacentArcs, setAdjacentArcs] = useState({ prev: null, next: [] });
+  const [loading, setLoading] = useState(false);
+  const [pacing, setPacing] = useState(3);
+  const [error, setError] = useState(null);
+  const [lastAttempt, setLastAttempt] = useState(null);
 
+  const [forkingNode, setForkingNode] = useState(null);
+  const [forkChoices, setForkChoices] = useState([]);
+  const [customInput, setCustomInput] = useState('');
+
+  const [newStory, setNewStory] = useState({ 
+    title: '', description: '',
+    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' }
+  });
+
+  // --- EFFECT BLOCKS SECOND ---
   useEffect(() => {
     const pathParts = location.pathname.split('/');
     const path = pathParts[1] || 'home';
@@ -99,24 +120,19 @@ const App = () => {
     }
   }, [location]);
 
-  const [isReadOnly, setIsReadOnly] = useState(false);
-  const [stories, setStories] = useState([]);
-  const [currentStory, setCurrentStory] = useState(null);
-  const [allChapters, setAllChapters] = useState([]);
-  const [storyPath, setStoryPath] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [pacing, setPacing] = useState(3);
-  const [error, setError] = useState(null);
-  const [lastAttempt, setLastAttempt] = useState(null);
-
-  const [forkingNode, setForkingNode] = useState(null);
-  const [forkChoices, setForkChoices] = useState([]);
-  const [customInput, setCustomInput] = useState('');
-
-  const [newStory, setNewStory] = useState({ 
-    title: '', description: '',
-    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' }
-  });
+  useEffect(() => {
+    if (view === 'world' && location.pathname.includes('/arc/')) {
+      const pathParts = location.pathname.split('/');
+      const targetId = pathParts[4];
+      if (targetId && allChapters.length > 0) {
+        const target = allChapters.find(c => String(c.id) === String(targetId));
+        setAdjacentArcs({
+          prev: target?.parent_id ? String(target.parent_id) : null,
+          next: allChapters.filter(c => String(c.parent_id) === String(targetId)).map(c => String(c.id))
+        });
+      }
+    }
+  }, [location, allChapters, view]);
 
   const fetchStories = async () => {
     try {

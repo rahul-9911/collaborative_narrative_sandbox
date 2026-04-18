@@ -92,4 +92,19 @@ We identified that a single-URL SPA was insufficient for a professional narrativ
 **Current Status:** StoryForge is now a stable, addressable platform. The multiverse is addressable by URL and the engine is optimized for high-performance sequential reading.
 
 ---
-*Vance (The Archivist): "The timelines are no longer just state—they are destinations. The transformation is complete."*
+
+## 🧭 Entry 9: The Sequential Compass (Session 8)
+**Navigating the Multiverse**
+With addressable URLs in place, the next challenge was sequential navigation. We needed a way to browse the story arc-by-arc without returning to the Timeline Map.
+
+**The Breakthrough:** We implemented **"Decentralized Adjacency."** Instead of the main App state pushing navigation pointers down, the `QuestView` now calculates its own Next/Prev nodes directly from the chapter list using the URL ID. This eliminated race conditions and made navigation 100% reliable.
+
+**The Hardening:**
+- **Hook Integrity:** Re-ordered React hooks in `App.jsx` to prevent initialization crashes (White Screen).
+- **UI Interaction:** Increased z-index and opacity for the navigation bar to ensure buttons are clickable and readable over prose.
+- **Data Robustness:** Hardened ID comparisons using string-based normalization to prevent UUID-vs-String mismatches.
+
+**Current Status:** Sequential navigation is live. Authors can traverse linear paths and identify branching points directly within the reader view.
+
+---
+*Vance (The Archivist): "We have given the author a compass. The path forward is now as clear as the path behind."*

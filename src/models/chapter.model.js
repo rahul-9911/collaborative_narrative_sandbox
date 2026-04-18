@@ -74,6 +74,11 @@ const Chapter = {
 
   async updateSummary(id, summary) {
     return await db.query('UPDATE chapters SET summary = $1 WHERE id = $2', [summary, id]);
+  },
+
+  async getChildren(parentId) {
+    const result = await db.query('SELECT * FROM chapters WHERE parent_id = $1 ORDER BY created_at ASC', [parentId]);
+    return result.rows;
   }
 };
 

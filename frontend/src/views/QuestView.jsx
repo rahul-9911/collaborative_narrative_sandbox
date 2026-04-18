@@ -1,9 +1,11 @@
-import React from 'react';
-import { Sparkles, Map, Fingerprint, GitBranch, Wand2, ChevronRight, Play, Lock, PenTool, RefreshCw } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Sparkles, Map, Fingerprint, GitBranch, Wand2, ChevronRight, ChevronLeft, Play, Lock, PenTool, RefreshCw } from 'lucide-react';
 
 const QuestView = ({ 
   currentStory, 
   storyPath = [], 
+  allChapters = [],
   loading, 
   handleChoice, 
   customInput, 
@@ -13,6 +15,25 @@ const QuestView = ({
   prepareFork,
   cancelDrafting
 }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  // Internal Adjacency Calculation (Zero Race Condition)
+  const adjacent = useMemo(() => {
+    if (!id || allChapters.length === 0) return { prev: null, next: [] };
+    
+    // Ensure we are comparing clean strings
+    const cleanId = String(id).trim().toLowerCase();
+    const current = allChapters.find(c => String(c.id).trim().toLowerCase() === cleanId);
+    
+    return {
+      prev: current?.parent_id ? String(current.parent_id).trim().toLowerCase() : null,
+      next: allChapters
+        .filter(c => c.parent_id && String(c.parent_id).trim().toLowerCase() === cleanId)
+        .map(c => String(c.id).trim().toLowerCase())
+    };
+  }, [id, allChapters]);
+
   // Integrity Guard: Show loading state instead of crashing if path is being built
   if (!storyPath || (storyPath.length === 0 && !loading)) {
     return (
@@ -28,21 +49,35 @@ const QuestView = ({
 
   return (
     <div className="max-w-3xl mx-auto space-y-32 pb-64 animate-sf-reveal">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/40">ARC {arcIndex}</span>
-          <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">{currentChapter?.title || 'Untitled Arc'}</h2>
+      <div className="flex justify-center items-center bg-[#0a0a0a] border border-white/10 p-4 rounded-3xl sticky top-28 z-[50] shadow-2xl">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => adjacent.prev && navigate(`/world/${currentStory.slug}/arc/${adjacent.prev}`)}
+            disabled={!adjacent.prev}
+            className="p-3 hover:bg-white/10 rounded-2xl text-white transition-all disabled:opacity-5"
+            title="Previous Arc"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          
+          <div className="h-8 w-[1px] bg-white/10"></div>
+
+          <div className="flex items-center gap-4 px-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 shrink-0">ARC {arcIndex}</span>
+            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter whitespace-nowrap">{currentChapter?.title || 'Untitled Arc'}</h2>
+          </div>
+
+          <div className="h-8 w-[1px] bg-white/10"></div>
+
+          <button 
+            onClick={() => adjacent.next.length === 1 && navigate(`/world/${currentStory.slug}/arc/${adjacent.next[0]}`)}
+            disabled={adjacent.next.length !== 1}
+            className="p-3 hover:bg-white/10 rounded-2xl text-white transition-all disabled:opacity-5"
+            title="Next Arc"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
         </div>
-        
-        {isReadOnly ? (
-          <div className="bg-white/5 border border-white/10 rounded-full px-6 py-2 flex items-center gap-3 text-stone-500 font-black text-[9px] uppercase tracking-widest">
-            <Lock className="w-4 h-4" /> Narrative Archive
-          </div>
-        ) : (
-          <div className="bg-amber-500/5 border border-amber-500/10 rounded-full px-6 py-2 flex items-center gap-3 text-amber-500/60 font-black text-[9px] uppercase tracking-widest">
-            <Fingerprint className="w-4 h-4" /> Drafting
-          </div>
-        )}
       </div>
 
       <div className="animate-sf-reveal">
@@ -73,6 +108,23 @@ const QuestView = ({
         </div>
       ) : (
         <div className="mt-48 animate-sf-reveal">
+          <div className="flex justify-center mb-12 gap-4">
+            {adjacent.next.length > 1 && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 text-[9px] font-black uppercase tracking-widest">
+                {adjacent.next.length} Branches Available
+              </div>
+            )}
+            {isReadOnly ? (
+              <div className="bg-white/5 border border-white/10 rounded-full px-6 py-2 flex items-center gap-3 text-stone-500 font-black text-[9px] uppercase tracking-widest">
+                <Lock className="w-4 h-4" /> Narrative Archive
+              </div>
+            ) : (
+              <div className="bg-amber-500/5 border border-amber-500/10 rounded-full px-6 py-2 flex items-center gap-3 text-amber-500/60 font-black text-[9px] uppercase tracking-widest">
+                <Fingerprint className="w-4 h-4" /> Drafting
+              </div>
+            )}
+          </div>
+
           {isReadOnly ? (
             <div className="text-center space-y-12">
               <div className="flex items-center gap-4 justify-center opacity-30">
@@ -136,7 +188,8 @@ const QuestView = ({
                   >
                     Commit to Timeline <Play className="w-5 h-5 fill-current" />
                   </button>
-                </div>              </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
