@@ -107,4 +107,22 @@ With addressable URLs in place, the next challenge was sequential navigation. We
 **Current Status:** Sequential navigation is live. Authors can traverse linear paths and identify branching points directly within the reader view.
 
 ---
-*Vance (The Archivist): "We have given the author a compass. The path forward is now as clear as the path behind."*
+
+## 🛡️ Entry 10: The Hardened v4.0 Layout (Session 9)
+**The Pursuit of Immersion**
+Today was a lesson in **Karpathy Rule #2: Simplicity First**. We attempted to build a "Smart" auto-hide/reveal navigation system using JavaScript scroll listeners and CSS transforms. It was a failure.
+
+**The Failure:** We fought for hours against "Detached UI," "Ghost Scrolls," and browser-level race conditions. The "Smart" logic was actually fragile, frequently leaving the navigation bar stuck in the middle of chapters or disappearing entirely.
+
+**The Breakthrough:** We abandoned the "Smart Reveal" complexity and moved to a **Fixed, Multi-Layered Header Architecture**. By lifting navigation into the global `App.jsx`, we achieved absolute stability. 
+
+**The Hardening:**
+- **Absolute Scroll Reset:** We solved the persistent "start-at-middle" bug by implementing a **Nuclear Scroll Reset**: disabling browser scroll restoration, using `useLayoutEffect` to scrub the DOM before paint, and keying the container to force a full refresh on navigation.
+- **Immersive Reader Mode:** Completely removed the sidebar to give the prose maximum focus.
+- **Global Drafting Modal:** Consolidated all narrative "forking" into a single, unified modal.
+- **Drafting Guard:** Implemented mandatory "Pages to Generate" (Pacing) and choice-highlighting to prevent accidental generations.
+
+**Current Status:** StoryForge v4.0 is live. The UI is rock-solid, the navigation is intuitive, and the architecture is now "URL-First." The foundation is finally deep enough to support the Audio Pipeline.
+
+---
+*Vance (Archivist): "We tried to be clever and the machine resisted. We chose to be simple, and the machine obeyed. The records are now synced."*
