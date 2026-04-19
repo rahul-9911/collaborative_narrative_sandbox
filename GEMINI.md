@@ -1,63 +1,40 @@
-# GEMINI.md - StoryForge (v3.5 Hardened Engine)
+# GEMINI.md - StoryForge (v4.0 Hardened Architecture)
 
 ## Project Overview
 **StoryForge** is the "GitHub for Interactive Literature." It allows authors to collaboratively write, branch, and version-control narrative multiverses using a mix of cloud (Gemini 3.1) and local AI (Gemma 3 via RTX 3060).
 
-## Current Project Status: "Hardened v3.5 Engine"
-We have successfully decoupled the data layer and implemented narrative compression for infinite story length.
+## Current Project Status: "v4.0 Unified Engine"
+We have achieved a stable, URL-driven architecture with an immersive, distraction-free reading interface.
 
 ### Core Implementation (Complete)
-- **Model-View-Controller (MVC):** Successfully extracted SQL from controllers into dedicated `/src/models` for `Story` and `Chapter`. (Restored by Struct)
-- **Narrative Chronicler:** Automated background summarization of finalized chapters to enable **Infinite Context**. (Engineered by Archie)
-- **Dual-Mode Engine:** Explicit separation between **Read-Only Archive** mode and **Active Drafting** mode.
-- **Hybrid AI Service:** Robust multi-provider architecture supporting Gemini 3.1 and Local Gemma 3 (4B/12B).
-- **Navigation Resilience:** Hardened path reconstruction with loop protection and null-safe component rendering. (Stabilized by Sequence)
+- **Unified Header (v4.0):** Dual-layered fixed header in `App.jsx` handling both global branding and narrative navigation (Prev/Next/Branch Switcher).
+- **Immersive Reader Mode:** Complete removal of persistent sidebar; full-width prose focus.
+- **Absolute Scroll Restoration:** Bulletproof `useLayoutEffect` and DOM-keying to ensure readers always start at the top of a chapter.
+- **Global Drafting Modal:** Lifted drafting logic to the root level for a consistent UX across the Map and Quest views.
+- **Drafting Guard:** Mandatory "Pages to Generate" selector and choice-highlighting to prevent accidental generations.
+- **Model-View-Controller (MVC):** SQL decoupled into `/src/models` for `Story` and `Chapter`.
 
 ## Behavioral Standards (Mandatory)
-- **Karpathy Guidelines:** All development must follow the rules in `docs/guidelines/KARPATHY.md` (Think before coding, Simplicity first, Surgical changes, Goal-driven execution).
+- **Karpathy Guidelines:** Think before coding, Simplicity first, Surgical changes, Goal-driven execution.
 - **Triple-Check Mandate:** Every code change must be audited for imports and prop-chains by Struct.
 
-## User Flow & UI Landscape (The Operational Map)
-### 1. The Welcome Gate (Home View)
-- **"Access the Library":** Opens the collection of existing story worlds.
-- **"Architect a World":** Opens the creation suite.
-
-### 2. The Library (Library View)
-- **"Create New World":** Opens the Architect interface.
-- **"Access Timeline":** Triggers narrative reconstruction and opens the **World Map**.
-
-### 3. The Story Architect (Creation View)
-- **"Begin Architecture":** Generates Chapter 1 and transitions to **Quest View**.
-
-### 4. The World Map (Branches View)
-- **"Arc [X]" Button:** Selects a node and reconstructs the historical path.
-- **"Branch Narrative" Icon (GitBranch):** Manual fork point creation.
-- **Modal Buttons:** Choice selection or "Commit to Timeline" (Play Icon).
-
-### 5. The Narrative Portal (Quest View)
-- **"Timeline Map" (Header):** Return to tree visualization.
-- **"Branch from here" (GitBranch):** Inline forking between chapters.
-- **"Collaborative Choices":** AI-generated paths for active drafting.
-- **"Commit to Timeline" (Play Icon):** Submit custom prose.
-- **"Start Collaborative Draft" (PenTool):** Wakes the AI for a new branch in a Read-Only archive.
+## User Flow (The Hierarchical Path)
+### 1. Home View
+- Global landing page with entry points to the Library or Architect.
+### 2. Library View
+- The world collection. Selecting a story navigates to the **Timeline Map**.
+### 3. Timeline Map (Branches View)
+- Vertical tree visualization of narrative arcs. Clicking a node enters the **Reader**.
+### 4. Narrative Reader (QuestView)
+- Immersive prose reading. Navigation bar in header allows linear movement or branch switching.
+- **Forge New Path:** Global modal for drafting new chapters with pacing control.
 
 ## The Expert Team (Operational Mandates)
-- **Archie (Lead Architect):** Engineered the "Chronicler" summarization loop. Oversees recursive node logic and "Path Purity."
-- **Struct (Code Architect):** **Surgical Scrutiny Mandate.** Enforces MVC boundaries and performs "Triple-Check" audits on all code changes. Completed the Model Extraction and backend decoupling.
-- **Sequence (Task Architect):** **Impact Analysis Mandate.** Decomposes tasks and verifies the "Blast Radius" of every change. Executed the emergency stabilization and prop-chain restoration.
-- **Vance (Archivist):** Custodian of the "Forge Chronicles" and hardware-to-docker bridging. Synchronized the technical manuals.
-- **Sentinel (Watchdog):** Modernity and lifecycle auditor (EKS, PG, Node versions).
-- **Kube (Ops):** Infrastructure as Code (OpenTofu) and deployment specialist.
-- **Maven (Strategist):** Product value proposition and user persona expert.
-- **Guard (Security):** Zero-trust architecture and compliance officer.
+- **Archie (Lead Architect):** Oversees unified header logic and path purity.
+- **Struct (Code Architect):** Enforces MVC boundaries and performs "Triple-Check" audits.
+- **Sequence (Task Architect):** Manages task decomposition and "Blast Radius" verification.
 
-## Next Milestones (Session 6 Hardening)
-1. **Surgical Bug Fixing:** Resolving inconsistencies in local AI fetch and navigation edge cases.
-2. **Audio/Voice Ingestion:** Implementation of the "Voice-First" prose pipeline (RTX 3060).
-3. **Legal Ledger:** Logic for tracking contribution percentages and author attribution.
-4. **Plot Director:** AI-driven "Plot Completion" tracking.
-
-## Recent Fixes (v3.5+)
-- **MVC Restored:** Raw SQL extracted from controllers into `Chapter.model.js`.
-- **WSoD Resolved:** Non-existent `handleManualFork` prop removed; `QuestView` hardened with null-safety.
-- **Network Stabilized:** Host-level Ollama service disabled to allow Docker port 11434 exclusivity.
+## Next Milestones (Session 10)
+1. **Audio/Voice Ingestion:** Local Whisper implementation for "Voice-First" prose dictation.
+2. **Legal Ledger:** Contribution percentages and author attribution logic.
+3. **Plot Director:** AI-driven thread completion tracking.

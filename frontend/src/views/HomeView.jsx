@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PenTool, ScrollText, Layers } from 'lucide-react';
 
-const HomeView = ({ setView }) => {
+const HomeView = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-5xl mx-auto py-12 animate-sf-reveal">
       <div className="text-center mb-20">
@@ -15,8 +18,8 @@ const HomeView = ({ setView }) => {
           StoryForge is a professional collaborative authoring tool. Use the power of AI to expand your prose, fork narrative timelines like code, and prepare your multiverse for professional publication.
         </p>
         <div className="flex justify-center gap-6">
-          <button onClick={() => setView('architect')} className="sf-button-primary scale-110">Start a New Story</button>
-          <button onClick={() => setView('library')} className="px-10 py-4 border border-white/10 rounded-2xl text-white font-black uppercase tracking-tighter hover:bg-white/5 transition-all">Browse Library</button>
+          <button onClick={() => navigate('/architect')} className="sf-button-primary scale-110">Start a New Story</button>
+          <button onClick={() => navigate('/library')} className="px-10 py-4 border border-white/10 rounded-2xl text-white font-black uppercase tracking-tighter hover:bg-white/5 transition-all">Browse Library</button>
         </div>
       </div>
 

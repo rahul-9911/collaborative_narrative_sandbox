@@ -8,7 +8,6 @@ import BranchesView from './views/BranchesView';
 
 const AppRoutes = ({ 
   stories, 
-  loadWorldBranches, 
   loading,
   currentStory,
   allChapters,
@@ -21,7 +20,6 @@ const AppRoutes = ({
   customInput,
   setCustomInput,
   storyPath,
-  adjacentArcs,
   isReadOnly,
   cancelDrafting,
   newStory,
@@ -32,9 +30,9 @@ const AppRoutes = ({
 
   return (
     <Routes>
-      <Route path="/" element={<HomeView setView={(v) => navigate(`/${v}`)} />} />
-      <Route path="/home" element={<HomeView setView={(v) => navigate(`/${v}`)} />} />
-      <Route path="/library" element={<LibraryView stories={stories} setView={(v) => navigate(`/${v}`)} loadWorldBranches={loadWorldBranches} loading={loading} />} />
+      <Route path="/" element={<HomeView />} />
+      <Route path="/home" element={<HomeView />} />
+      <Route path="/library" element={<LibraryView stories={stories} loading={loading} />} />
       <Route path="/world/:slug" element={
         <BranchesView 
           currentStory={currentStory} allChapters={allChapters} startQuestAtNode={startQuestAtNode}
@@ -48,7 +46,7 @@ const AppRoutes = ({
         <QuestView 
           currentStory={currentStory} storyPath={storyPath} allChapters={allChapters} loading={loading}
           handleChoice={handleChoice}
-          customInput={customInput} setCustomInput={setCustomInput} setView={(v) => navigate(`/${v}`)}
+          customInput={customInput} setCustomInput={setCustomInput}
           isReadOnly={isReadOnly} prepareFork={prepareFork}
           cancelDrafting={cancelDrafting}
         />

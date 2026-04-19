@@ -1,20 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, GitBranch, RefreshCw, ChevronRight, Play, CornerDownRight } from 'lucide-react';
+import { GitBranch, RefreshCw, ChevronRight } from 'lucide-react';
 
 const BranchesView = ({ 
   currentStory, 
   allChapters = [], 
-  startQuestAtNode, 
-  forkingNode, 
-  setForkingNode, 
-  prepareFork, 
   loading, 
-  forkChoices = [], 
-  handleChoice, 
-  customInput, 
-  setCustomInput,
-  cancelDrafting 
+  prepareFork 
 }) => {
   const navigate = useNavigate();
 
@@ -50,8 +42,7 @@ const BranchesView = ({
                 <button 
                   onClick={() => navigate(`/world/${currentStory.slug}/arc/${chapter.id}`)} 
                   disabled={loading}
-                  className={`mt-2 p-5 bg-white/5 border rounded-2xl shadow-2xl transition-all min-w-[180px] text-center
-                    ${forkingNode?.id === chapter?.id ? 'border-amber-500 bg-amber-500/10' : 'border-white/10 hover:border-white/30'}
+                  className={`mt-2 p-5 bg-white/5 border rounded-2xl shadow-2xl transition-all min-w-[180px] text-center border-white/10 hover:border-white/30
                     ${loading ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >
@@ -65,7 +56,7 @@ const BranchesView = ({
                   onClick={(e) => { e.stopPropagation(); prepareFork(chapter); }}
                   disabled={loading}
                   className="absolute -right-3 top-1/2 -translate-y-1/2 bg-black border border-white/10 p-2 rounded-xl text-stone-500 hover:text-amber-500 hover:border-amber-500/50 transition-all opacity-0 group-hover:opacity-100 shadow-xl disabled:opacity-0"
-                  title="Branch Narrative"
+                  title="Forge New Path"
                 >
                   <GitBranch className="w-4 h-4" />
                 </button>
@@ -88,74 +79,6 @@ const BranchesView = ({
       <div className="inline-block min-w-full p-16 bg-white/[0.02] rounded-[5rem] border border-white/5 shadow-inner">
         {renderTreeVertical()}
       </div>
-
-      {forkingNode && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-12">
-          <div className="max-w-3xl w-full animate-sf-reveal">
-            <div className="flex justify-between items-center mb-12">
-              <div className="flex items-center gap-4">
-                <GitBranch className="w-8 h-8 text-amber-500" />
-                <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">New Branch</h2>
-              </div>
-            </div>
-
-            <div className="sf-card p-12 mb-12 border-amber-500/20 bg-amber-500/[0.02]">
-              <p className="text-[10px] uppercase tracking-[0.4em] font-black text-amber-500/40 mb-8 italic">Origin Point: {forkingNode.title}</p>
-              <div className="text-xl text-stone-400 font-serif leading-relaxed line-clamp-4 italic opacity-60 text-left">
-                {(() => {
-                  const lastScene = (forkingNode.scenes || []).slice(-1)[0];
-                  const content = lastScene?.content || forkingNode.content || '';
-                  return content.length > 300 ? `...${content.substring(content.length - 300)}` : content;
-                })()}
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="flex flex-col items-center gap-4 py-12">
-                <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-600">Drawing Possibilities...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-[10px] uppercase tracking-[0.4em] font-black text-stone-700 mb-8">Choose New Narrative Path</p>
-                {forkChoices?.map((choice, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => handleChoice(choice, forkingNode)} 
-                    className="w-full text-left p-6 sf-card hover:border-amber-500/50 group flex items-center justify-between"
-                  >
-                    <span className="text-lg font-bold text-stone-300 group-hover:text-white">{choice}</span>
-                    <ChevronRight className="w-5 h-5 text-stone-700 group-hover:text-amber-500" />
-                  </button>
-                ))}
-                
-                <div className="relative mt-12 bg-white/[0.03] border border-white/10 rounded-[2rem] p-4 flex flex-col gap-4">
-                  <textarea 
-                    value={customInput}
-                    onChange={(e) => setCustomInput(e.target.value)}
-                    placeholder="Lead the narrative yourself..." 
-                    className="w-full bg-transparent border-none outline-none text-xl font-serif min-h-[120px] resize-none p-4 text-white"
-                  />
-                  <div className="flex justify-end gap-4 p-2">
-                    <button 
-                      onClick={cancelDrafting}
-                      className="border border-white/10 text-stone-400 p-4 rounded-2xl hover:bg-white/5 hover:text-white transition-all font-black uppercase text-[10px] tracking-widest active:scale-95"
-                    >
-                      Cancel Branch
-                    </button>
-                    <button 
-                      onClick={() => { if (customInput) handleChoice(customInput, forkingNode); }} 
-                      className="bg-white text-black p-4 rounded-2xl hover:bg-amber-500 transition-all flex items-center gap-2 font-black uppercase text-[10px] tracking-widest active:scale-95 shadow-xl"
-                    >
-                      Execute <Play className="w-4 h-4 fill-current" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Wind, ChevronRight } from 'lucide-react';
 
-const LibraryView = ({ stories, setView, loadWorldBranches, loading }) => {
+const LibraryView = ({ stories, loading }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="animate-sf-reveal">
       <div className="flex items-center justify-between mb-16">
@@ -10,7 +13,7 @@ const LibraryView = ({ stories, setView, loadWorldBranches, loading }) => {
           <p className="text-stone-600 font-bold uppercase tracking-widest text-[10px] mt-2">Resume a narrative or explore parallel arcs</p>
         </div>
         <button 
-          onClick={() => setView('architect')} 
+          onClick={() => navigate('/architect')} 
           disabled={loading}
           className="sf-button-primary text-[10px] px-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -20,7 +23,7 @@ const LibraryView = ({ stories, setView, loadWorldBranches, loading }) => {
       
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
         {stories.map(story => (
-          <div key={story.id} className="sf-card p-10 group flex flex-col">
+          <div key={story.id} className="sf-card p-10 group flex flex-col relative">
             <div className="absolute top-0 right-0 p-8">
               <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-white/5 flex items-center justify-center group-hover:bg-amber-500 transition-all duration-500 group-hover:rotate-12">
                 <Wind className="w-5 h-5 text-stone-600 group-hover:text-black" />
@@ -39,8 +42,7 @@ const LibraryView = ({ stories, setView, loadWorldBranches, loading }) => {
             </p>
             <button 
               onClick={() => {
-                loadWorldBranches(story);
-                setView(`world/${story.slug}`);
+                navigate(`/world/${story.slug}`);
               }} 
               disabled={loading}
               className="mt-auto sf-button-primary w-full flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
