@@ -65,21 +65,34 @@ class AIService {
   }
 
   async generateProse(prompt, context = '', metadata = {}, length = 3, needsTitle = false, attempt = 1) {
-    const { genre = 'Literary Fiction', tone = 'Balanced', plot_goal = 'Not specified' } = metadata;
+    const { genre = 'Literary Fiction', tone = 'Balanced', plot_goal = 'Not specified', chapterDepth = 1, chaptersPerStep = 2 } = metadata;
+    const { TROPE_BLACKLIST, HARMON_STORY_CIRCLE } = require('../utils/NarrativeFrameworks');
     const maxAttempts = 3;
+
+    // Convert length (Pages) to paragraphs/words
+    const targetParagraphsMin = length * 4;
+    const targetParagraphsMax = length * 5;
+    const targetWordsMin = length * 250;
+    const targetWordsMax = length * 300;
 
     const lengthInstruction = length === 'full' 
       ? "Write a complete, lengthy chapter (approx 10-15 paragraphs) that brings this segment of the story to a satisfying pause point."
-      : `Write exactly ${length} paragraphs of the story.`;
+      : `Write approximately ${targetParagraphsMin} to ${targetParagraphsMax} paragraphs (roughly ${targetWordsMin} to ${targetWordsMax} words). Ensure the volume of text matches this request exactly.`;
 
     const titleInstruction = needsTitle 
       ? "Also, generate a creative and evocative Title for this new chapter. Return your response as a JSON object: { \"title\": \"...\", \"prose\": \"...\" }"
       : "Return your response as a JSON object: { \"prose\": \"...\" }";
 
+    const narrativeInstruction = HARMON_STORY_CIRCLE.getStepInstruction(chapterDepth, chaptersPerStep);
+    const tropeConstraint = `BANNED WORDS: Do not use any of the following words: ${TROPE_BLACKLIST.join(', ')}. Focus on grounded, specific language.`;
+
     const systemPrompt = `You are a professional novelist. Genre: ${genre}. Tone: ${tone}.`;
     const fullPrompt = `
 STORY BIBLE:
 - Plot Goal: ${plot_goal}
+
+${narrativeInstruction}
+${tropeConstraint}
 
 CONTEXT OF PREVIOUS CHAPTERS:
 ${context}
@@ -90,8 +103,8 @@ ${prompt}
 INSTRUCTIONS:
 ${lengthInstruction}
 ${titleInstruction}
-Adhere strictly to the Genre and Tone. Ensure the prose moves the story meaningfully toward the Plot Goal.
-Avoid repetitive descriptions. Return ONLY the JSON object. No other text.
+Adhere strictly to the Genre, Tone, and Director's Constraints. Ensure the prose moves the story meaningfully toward the Plot Goal without rushing.
+Return ONLY the JSON object. No other text.
 `;
 
     try {

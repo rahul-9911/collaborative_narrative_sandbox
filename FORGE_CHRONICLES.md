@@ -49,4 +49,16 @@ We faced a crisis of complexity: the core `App.jsx` had grown back into a 500-li
 **Current Status:** StoryForge is no longer a prototype; it is a hardened platform. The code is modular, the UI is immersive, and the engine is token-efficient and ready for future AI scaling.
 
 ---
+
+## 🧭 Entry 7: The Narrative Engine & Director Skills (Session 10 / v5.0)
+**The Pacing Paradox**
+We conducted a comprehensive multi-chapter branching test ("THE CHRONOS PARADOX") and discovered a critical flaw: the AI was rushing the plot. It was introducing conflicts and resolving them within three chapters, drowning the prose in flowery tropes like "obsidian" and "echoes."
+
+**The Framework Solution:** We pivoted from raw context dumping to a structured **Narrative Context Engine**. By hardcoding Dan Harmon's 8-Step Story Circle, the engine now acts as a strict state machine, physically preventing the AI from rushing the narrative. We also instituted a "Trope Blacklist" to clean up the prose.
+
+**The Future Vision (Story Directors):** This led to a profound realization. Just as "Skills" transformed Gemini into a powerful coding agent, we can package these narrative frameworks and tone instructions into modular "Skills" for the story creator. In the future, users will be able to define custom "Story Directors" (e.g., a "Tarantino" skill or a "Nolan" skill) to guide their multiverses.
+
+**Session 10 Wrap-up:** We successfully implemented the Narrative Engine, Pacing Logic, and Chapter-to-Step scaling. Manual testing revealed a race condition in the drafting modal (double-commits) and a persistent "fanciness" in AI prose that still needs grounding.
+
+---
 *Vance (Archivist): "The Forge is clean. The Steel is true. We rest today knowing the foundation will hold any weight we place upon it."*

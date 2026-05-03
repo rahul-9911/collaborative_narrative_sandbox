@@ -29,7 +29,7 @@ export const NarrativeProvider = ({ children }) => {
 
   const [newStory, setNewStory] = useState({ 
     title: '', description: '',
-    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' }
+    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '', chaptersPerStep: 2 }
   });
 
   // --- UTILS ---
@@ -72,7 +72,7 @@ export const NarrativeProvider = ({ children }) => {
       setCurrentStory(story);
       // Immediately start the first chapter generation
       await startQuestAtNode(story, null);
-      setNewStory({ title: '', description: '', metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '' } });
+      setNewStory({ title: '', description: '', metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '', chaptersPerStep: 2 } });
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -124,8 +124,13 @@ export const NarrativeProvider = ({ children }) => {
     }
 
     try {
+      const depth = storyPath.length + (isNewChapterNeeded ? 1 : 0);
       const data = await api.generateAI({ 
-        prompt: `Action: ${choice}`, context: globalContext, metadata: activeStory.metadata, length: pacing, needsTitle: isNewChapterNeeded
+        prompt: `Action: ${choice}`, 
+        context: globalContext, 
+        metadata: { ...activeStory.metadata, chapterDepth: depth }, 
+        length: pacing, 
+        needsTitle: isNewChapterNeeded
       });
 
       if (!isNewChapterNeeded) {

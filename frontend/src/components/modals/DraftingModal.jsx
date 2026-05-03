@@ -93,7 +93,7 @@ const DraftingModal = () => {
               className="bg-transparent text-white font-black text-xs p-1 outline-none cursor-pointer hover:text-amber-500 transition-colors"
             >
               <option value="0" disabled>Pages</option>
-              {[1,2,3,4,5,6,7,8,9,10].map(n => (
+              {[1,2,3,4].map(n => (
                 <option key={n} value={n} className="bg-[#0a0a0a]">{n}</option>
               ))}
             </select>

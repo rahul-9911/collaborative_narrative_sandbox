@@ -34,7 +34,8 @@ We have achieved a stable, URL-driven architecture with an immersive, distractio
 - **Struct (Code Architect):** Enforces MVC boundaries and performs "Triple-Check" audits.
 - **Sequence (Task Architect):** Manages task decomposition and "Blast Radius" verification.
 
-## Next Milestones (Session 10)
-1. **Audio/Voice Ingestion:** Local Whisper implementation for "Voice-First" prose dictation.
-2. **Legal Ledger:** Contribution percentages and author attribution logic.
-3. **Plot Director:** AI-driven thread completion tracking.
+## Next Milestones (Session 11: V1 Polish)
+1. **Drafting Guard (Hardening):** Fix the race condition where the "Commit" button remains active during generation.
+2. **The "The End" Protocol:** Implement formal narrative termination and step-transition notifications in the UI.
+3. **Grounded Prose Skill:** Refine the "Director Skills" to explicitly enforce simpler, non-fancy, character-driven language (anti-AI-style).
+4. **Director Skills (V2 Foundation):** Allow users to define their own style constraints.
