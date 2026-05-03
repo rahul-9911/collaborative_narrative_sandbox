@@ -88,6 +88,8 @@ export const NarrativeProvider = ({ children }) => {
           context: '', metadata: story.metadata, length: 3, needsTitle: true
         });
         const newChapter = await api.saveChapter(story.id, { title: data.title || 'Chapter 1', content: data.prose });
+        const chapters = await api.getChapters(story.id);
+        setAllChapters(chapters);
         navigate(`/world/${story.slug}/arc/${newChapter.id}`);
       } catch (err) {
         setError(err.message);
@@ -197,9 +199,9 @@ export const NarrativeProvider = ({ children }) => {
 
       const loadData = async () => {
         try {
-          if (!currentStory || currentStory.slug !== pathParts[2]) {
+          if (!currentStory || currentStory.slug !== pathParts[2] || allChapters.length === 0) {
             setLoading(true);
-            const story = await api.getStoryBySlug(pathParts[2]);
+            const story = currentStory?.slug === pathParts[2] ? currentStory : await api.getStoryBySlug(pathParts[2]);
             if (!story) throw new Error("Seed not found.");
             setCurrentStory(story);
             const chapters = await api.getChapters(story.id);

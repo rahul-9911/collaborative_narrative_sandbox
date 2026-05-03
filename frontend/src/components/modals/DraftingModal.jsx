@@ -21,7 +21,7 @@ const DraftingModal = () => {
             <GitBranch className="w-6 h-6 text-amber-500" />
             <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Forge New Path</h2>
           </div>
-          <button onClick={cancelDrafting} className="p-3 hover:bg-white/5 rounded-full text-stone-500 hover:text-white transition-all">
+          <button onClick={cancelDrafting} disabled={loading} className={`p-3 hover:bg-white/5 rounded-full text-stone-500 transition-all ${loading ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'}`}>
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -35,10 +35,11 @@ const DraftingModal = () => {
           </div>
 
           {loading ? (
-            <div className="py-12 space-y-8">
-              <div className="flex flex-col items-center gap-4">
-                <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
-                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-stone-500 animate-pulse">Drafting Multiverse...</p>
+            <div className="py-24 space-y-12">
+              <div className="flex flex-col items-center gap-6">
+                <RefreshCw className="w-16 h-16 text-amber-500 animate-spin" />
+                <p className="text-sm font-black uppercase tracking-[0.4em] text-amber-500 animate-pulse">Drafting Multiverse...</p>
+                <p className="text-xs text-stone-500 max-w-sm text-center">The engine is weaving the next thread. This process takes a moment...</p>
               </div>
               <div className="ghost-prose max-w-xl mx-auto opacity-20">
                 <div className="ghost-line w-[90%]" style={{ animationDelay: '0.1s' }}></div>
@@ -99,7 +100,7 @@ const DraftingModal = () => {
           </div>
 
           <div className="flex items-center gap-8">
-            <button onClick={cancelDrafting} className="text-[10px] font-black uppercase tracking-widest text-stone-500 hover:text-white transition-all">
+            <button onClick={cancelDrafting} disabled={loading} className={`text-[10px] font-black uppercase tracking-widest text-stone-500 transition-all ${loading ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'}`}>
               Discard Draft
             </button>
             <button 
