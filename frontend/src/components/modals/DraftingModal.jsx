@@ -1,5 +1,5 @@
-import React from 'react';
-import { GitBranch, RefreshCw, Layers, Play, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { GitBranch, RefreshCw, Layers, Play, X, FastForward, CheckCircle2 } from 'lucide-react';
 import { useNarrative } from '../../context/NarrativeContext';
 
 const DraftingModal = () => {
@@ -9,7 +9,12 @@ const DraftingModal = () => {
     cancelDrafting, handleChoice
   } = useNarrative();
 
+  const [advancePhase, setAdvancePhase] = useState(false);
+
   if (!forkingNode) return null;
+
+  const currentStep = forkingNode.story_step || 1;
+  const isFinalPhase = currentStep === 8;
 
   return (
     <div className="fixed inset-0 bg-black/95 backdrop-blur-3xl z-[100] flex items-center justify-center p-4">
@@ -29,7 +34,7 @@ const DraftingModal = () => {
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
           <div className="flex items-center gap-4 text-amber-500/40">
-            <span className="text-[8px] font-black uppercase tracking-[0.4em]">Origin Point</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.4em]">Phase {currentStep}</span>
             <div className="h-[1px] flex-1 bg-amber-500/10"></div>
             <span className="text-[10px] font-bold italic truncate max-w-[200px]">{forkingNode.title}</span>
           </div>
@@ -82,37 +87,55 @@ const DraftingModal = () => {
 
         {/* Sticky Modal Footer */}
         <div className="p-8 border-t border-white/5 bg-black/40 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4 bg-black/60 p-2 px-6 rounded-2xl border border-white/5 shadow-inner">
-            <div className="flex items-center gap-3 text-amber-500/40">
-              <Layers className="w-4 h-4" />
-              <span className="text-[8px] font-black uppercase tracking-widest">Pacing</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 bg-black/60 p-2 px-6 rounded-2xl border border-white/5 shadow-inner">
+              <div className="flex items-center gap-3 text-amber-500/40">
+                <Layers className="w-4 h-4" />
+                <span className="text-[8px] font-black uppercase tracking-widest">Pacing</span>
+              </div>
+              <select 
+                value={modalPacing}
+                onChange={(e) => setModalPacing(parseInt(e.target.value))}
+                className="bg-transparent text-white font-black text-xs p-1 outline-none cursor-pointer hover:text-amber-500 transition-colors"
+              >
+                <option value="0" disabled>Pages</option>
+                {[1,2,3,4].map(n => (
+                  <option key={n} value={n} className="bg-[#0a0a0a]">{n}</option>
+                ))}
+              </select>
             </div>
-            <select 
-              value={modalPacing}
-              onChange={(e) => setModalPacing(parseInt(e.target.value))}
-              className="bg-transparent text-white font-black text-xs p-1 outline-none cursor-pointer hover:text-amber-500 transition-colors"
+            
+            <button 
+              type="button"
+              onClick={() => setAdvancePhase(!advancePhase)}
+              className={`flex items-center gap-2 p-2 px-6 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest
+                ${advancePhase ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' : 'bg-black/60 border-white/5 text-stone-500 hover:text-stone-300'}`}
             >
-              <option value="0" disabled>Pages</option>
-              {[1,2,3,4].map(n => (
-                <option key={n} value={n} className="bg-[#0a0a0a]">{n}</option>
-              ))}
-            </select>
+              {isFinalPhase ? <CheckCircle2 className="w-4 h-4" /> : <FastForward className="w-4 h-4" />}
+              {isFinalPhase ? "Conclude Narrative" : "Advance to Next Phase"}
+            </button>
           </div>
 
           <div className="flex items-center gap-8">
-            <button onClick={cancelDrafting} disabled={loading} className={`text-[10px] font-black uppercase tracking-widest text-stone-500 transition-all ${loading ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'}`}>
+            <button 
+              type="button"
+              onClick={() => { cancelDrafting(); setAdvancePhase(false); }} 
+              disabled={loading} 
+              className={`text-[10px] font-black uppercase tracking-widest text-stone-500 transition-all ${loading ? 'opacity-30 cursor-not-allowed' : 'hover:text-white'}`}
+            >
               Discard Draft
             </button>
             <button 
-              onClick={() => { if ((selectedModalChoice || customInput) && modalPacing > 0) handleChoice(selectedModalChoice || customInput, forkingNode, modalPacing); }} 
-              disabled={(!selectedModalChoice && !customInput) || modalPacing === 0}
+              type="button"
+              onClick={() => { if ((selectedModalChoice || customInput) && modalPacing > 0 && !loading) { handleChoice(selectedModalChoice || customInput, forkingNode, modalPacing, advancePhase); setAdvancePhase(false); } }} 
+              disabled={loading || (!selectedModalChoice && !customInput) || modalPacing === 0}
               className={`p-5 px-12 rounded-2xl transition-all flex items-center gap-4 font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl
-                ${(selectedModalChoice || customInput) && modalPacing > 0 
+                ${(selectedModalChoice || customInput) && modalPacing > 0 && !loading
                   ? 'bg-white text-black hover:bg-amber-500 active:scale-95' 
                   : 'bg-white/5 text-stone-800 cursor-not-allowed border border-white/5'}
               `}
             >
-              Commit <Play className={`w-4 h-4 fill-current ${modalPacing > 0 && (selectedModalChoice || customInput) ? 'animate-pulse' : ''}`} />
+              {advancePhase && isFinalPhase ? 'FINALIZE' : 'Commit'} <Play className={`w-4 h-4 fill-current ${modalPacing > 0 && (selectedModalChoice || customInput) && !loading ? 'animate-pulse' : ''}`} />
             </button>
           </div>
         </div>

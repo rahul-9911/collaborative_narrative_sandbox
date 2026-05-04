@@ -19,29 +19,25 @@ const HARMON_STORY_CIRCLE = {
         { step: 7, title: "RETURN", description: "The protagonist heads back to their familiar situation, bringing the new knowledge or item. The climax resolves here." },
         { step: 8, title: "CHANGE", description: "The protagonist is back where they started, but fundamentally changed. The resolution. Establish the new normal." }
     ],
-    getStepInstruction: (chapterDepth, chaptersPerStep = 2) => {
-        const stepIndex = Math.floor((chapterDepth - 1) / chaptersPerStep);
-        const boundedIndex = Math.min(Math.max(stepIndex, 0), 7);
+    getStepInstruction: (stepNumber) => {
+        const boundedIndex = Math.min(Math.max(stepNumber - 1, 0), 7);
         const currentStep = HARMON_STORY_CIRCLE.steps[boundedIndex];
         
-        // Calculate sub-phase pacing
-        const positionInStep = (chapterDepth - 1) % chaptersPerStep;
         let pacingCue = "";
-        
-        if (chaptersPerStep > 1) {
-            if (positionInStep === 0) {
-                pacingCue = "PACING CUE: This is the beginning of this narrative phase. Introduce the themes of this step gradually.";
-            } else if (positionInStep === chaptersPerStep - 1) {
-                pacingCue = "PACING CUE: This is the concluding chapter of this narrative phase. Bring the themes of this step to a climax and prepare to transition the story forward.";
-            } else {
-                pacingCue = "PACING CUE: We are in the middle of this narrative phase. Continue exploring the current themes deeply without rushing to a conclusion.";
-            }
+        if (stepNumber >= 9) {
+            pacingCue = "PACING CUE: THE END. This is the final conclusion of the story. Write a definitive ending. Do not leave cliffhangers. Bring the narrative to a complete and satisfying close.";
+        } else if (stepNumber === 8) {
+            pacingCue = "PACING CUE: This is the final phase of the story. Wrap up the core narrative threads. Provide a satisfying conclusion to the character's journey.";
+        } else {
+            pacingCue = "PACING CUE: This phase can last as long as necessary. Focus entirely on the themes of this step. Do not rush to the next step until the user explicitly commands it.";
         }
 
-        return `NARRATIVE FRAMEWORK: ${HARMON_STORY_CIRCLE.name}
-CURRENT STEP: ${currentStep.step} - ${currentStep.title}
-DIRECTOR'S CONSTRAINT: ${currentStep.description}
-${pacingCue}`;
+        return `=========================================
+NARRATIVE FRAMEWORK: ${HARMON_STORY_CIRCLE.name}
+CURRENT STORY STEP: ${currentStep.step} of 8 - ${currentStep.title}
+DIRECTOR'S PHASE OBJECTIVE: ${currentStep.description}
+${pacingCue}
+=========================================`;
     }
 };
 

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS chapters (
     parent_id UUID REFERENCES chapters(id) ON DELETE SET NULL, -- Fork point
     title TEXT NOT NULL,
     content TEXT NOT NULL DEFAULT 'The page is blank...',
+    story_step INTEGER DEFAULT 1,
     author_id UUID DEFAULT gen_random_uuid(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -65,7 +65,14 @@ class AIService {
   }
 
   async generateProse(prompt, context = '', metadata = {}, length = 3, needsTitle = false, attempt = 1) {
-    const { genre = 'Literary Fiction', tone = 'Balanced', plot_goal = 'Not specified', chapterDepth = 1, chaptersPerStep = 2 } = metadata;
+    const { 
+      genre = 'Literary Fiction', 
+      tone = 'Balanced', 
+      plot_goal = 'Not specified', 
+      targetStep = 1, 
+      style_constraints = '',
+      narrative_structure = 'harmon_circle'
+    } = metadata;
     const { TROPE_BLACKLIST, HARMON_STORY_CIRCLE } = require('../utils/NarrativeFrameworks');
     const maxAttempts = 3;
 
@@ -83,16 +90,18 @@ class AIService {
       ? "Also, generate a creative and evocative Title for this new chapter. Return your response as a JSON object: { \"title\": \"...\", \"prose\": \"...\" }"
       : "Return your response as a JSON object: { \"prose\": \"...\" }";
 
-    const narrativeInstruction = HARMON_STORY_CIRCLE.getStepInstruction(chapterDepth, chaptersPerStep);
-    const tropeConstraint = `BANNED WORDS: Do not use any of the following words: ${TROPE_BLACKLIST.join(', ')}. Focus on grounded, specific language.`;
+    const narrativeInstruction = HARMON_STORY_CIRCLE.getStepInstruction(targetStep);
+    const tropeConstraint = `BANNED WORDS: Do not use any of the following words: ${TROPE_BLACKLIST.join(', ')}. Focus on grounded, specific language. Use active voice, simple sentences, and avoid overly abstract or poetic metaphors unless explicitly requested.`;
+    const styleConstraint = style_constraints ? `DIRECTOR'S STYLE CONSTRAINT: ${style_constraints}` : '';
 
-    const systemPrompt = `You are a professional novelist. Genre: ${genre}. Tone: ${tone}.`;
+    const systemPrompt = `You are a professional novelist. Genre: ${genre}. Tone: ${tone}. Framework: ${narrative_structure === 'harmon_circle' ? "Dan Harmon's Story Circle" : "Traditional Structure"}.`;
     const fullPrompt = `
 STORY BIBLE:
 - Plot Goal: ${plot_goal}
 
 ${narrativeInstruction}
 ${tropeConstraint}
+${styleConstraint}
 
 CONTEXT OF PREVIOUS CHAPTERS:
 ${context}

@@ -43,22 +43,33 @@ const QuestView = ({
         <div className="text-center space-y-12">
           <div className="flex items-center gap-4 justify-center opacity-30">
             <div className="h-[1px] w-24 bg-white/40"></div>
-            <span className="text-[10px] uppercase font-black tracking-widest text-white">Narrative Junction</span>
+            <span className="text-[10px] uppercase font-black tracking-widest text-white">
+              {currentChapter?.story_step >= 9 ? "Conclusion" : "Narrative Junction"}
+            </span>
             <div className="h-[1px] w-24 bg-white/40"></div>
           </div>
           
-          <div className="sf-card p-16 space-y-8 bg-amber-500/[0.02] border-amber-500/10">
-            <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Forge the Next Chapter?</h3>
-            <p className="text-stone-500 max-w-md mx-auto leading-relaxed text-sm">
-              Collaborate with the engine to expand this timeline or explore a different narrative path.
-            </p>
-            <button 
-              onClick={() => storyPath.length > 0 && prepareFork(storyPath[storyPath.length - 1])}
-              className="sf-button-primary flex items-center gap-4 mx-auto px-16 group"
-            >
-              <PenTool className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Forge New Path
-            </button>
-          </div>
+          {currentChapter?.story_step >= 9 ? (
+            <div className="sf-card p-16 space-y-8 bg-black border-white/5">
+              <h3 className="text-5xl font-black text-white italic tracking-tighter uppercase">The End</h3>
+              <p className="text-stone-500 max-w-md mx-auto leading-relaxed text-sm">
+                This timeline has reached its conclusion. No further branches can be forged from here.
+              </p>
+            </div>
+          ) : (
+            <div className="sf-card p-16 space-y-8 bg-amber-500/[0.02] border-amber-500/10">
+              <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Forge the Next Chapter?</h3>
+              <p className="text-stone-500 max-w-md mx-auto leading-relaxed text-sm">
+                Collaborate with the engine to expand this timeline or explore a different narrative path.
+              </p>
+              <button 
+                onClick={() => storyPath.length > 0 && prepareFork(storyPath[storyPath.length - 1])}
+                className="sf-button-primary flex items-center gap-4 mx-auto px-16 group"
+              >
+                <PenTool className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Forge New Path
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

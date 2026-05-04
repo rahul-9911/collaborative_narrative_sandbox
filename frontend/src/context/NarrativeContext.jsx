@@ -29,7 +29,7 @@ export const NarrativeProvider = ({ children }) => {
 
   const [newStory, setNewStory] = useState({ 
     title: '', description: '',
-    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '', chaptersPerStep: 2 }
+    metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '', style_constraints: '', narrative_structure: 'harmon_circle' }
   });
 
   // --- UTILS ---
@@ -72,7 +72,7 @@ export const NarrativeProvider = ({ children }) => {
       setCurrentStory(story);
       // Immediately start the first chapter generation
       await startQuestAtNode(story, null);
-      setNewStory({ title: '', description: '', metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '', chaptersPerStep: 2 } });
+      setNewStory({ title: '', description: '', metadata: { genre: 'Fantasy', tone: 'Epic', plot_goal: '', style_constraints: '', narrative_structure: 'harmon_circle' } });
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -87,7 +87,7 @@ export const NarrativeProvider = ({ children }) => {
           prompt: `Start a new story: ${story.title}. Premise: ${story.description}`, 
           context: '', metadata: story.metadata, length: 3, needsTitle: true
         });
-        const newChapter = await api.saveChapter(story.id, { title: data.title || 'Chapter 1', content: data.prose });
+        const newChapter = await api.saveChapter(story.id, { title: data.title || 'Chapter 1', content: data.prose, story_step: 1 });
         const chapters = await api.getChapters(story.id);
         setAllChapters(chapters);
         navigate(`/world/${story.slug}/arc/${newChapter.id}`);
@@ -101,11 +101,14 @@ export const NarrativeProvider = ({ children }) => {
     }
   };
 
-  const handleChoice = async (choice, specificNode = null, pacing = 3) => {
+  const handleChoice = async (choice, specificNode = null, pacing = 3, advancePhase = false) => {
     const activeStory = currentStory;
     const currentChapter = specificNode || storyPath[storyPath.length - 1];
     const isManualFork = !!specificNode;
-    const isNewChapterNeeded = isManualFork || (currentChapter.scenes || []).length >= 3;
+    // CRITICAL FIX: If advancing phase, we MUST force a new chapter to ensure Step increments in DB
+    const isNewChapterNeeded = isManualFork || (currentChapter.scenes || []).length >= 3 || advancePhase;
+    const currentStep = currentChapter.story_step || 1;
+    const targetStep = advancePhase ? currentStep + 1 : currentStep;
 
     setError(null);
     setIsReadOnly(false); 
@@ -128,7 +131,7 @@ export const NarrativeProvider = ({ children }) => {
       const data = await api.generateAI({ 
         prompt: `Action: ${choice}`, 
         context: globalContext, 
-        metadata: { ...activeStory.metadata, chapterDepth: depth }, 
+        metadata: { ...activeStory.metadata, targetStep: targetStep }, 
         length: pacing, 
         needsTitle: isNewChapterNeeded
       });
@@ -141,7 +144,7 @@ export const NarrativeProvider = ({ children }) => {
         newPath[newPath.length - 1] = { ...newPath[newPath.length - 1], scenes: [...(newPath[newPath.length - 1].scenes || []), newScene], choices: data.choices || [] };
         setStoryPath(newPath);
       } else {
-        const nextChapter = await api.saveChapter(activeStory.id, { title: data.title || `Branch: ${choice.substring(0, 15)}`, content: data.prose, parent_id: currentChapter.id });
+        const nextChapter = await api.saveChapter(activeStory.id, { title: data.title || `Branch: ${choice.substring(0, 15)}`, content: data.prose, parent_id: currentChapter.id, story_step: targetStep });
         const chapters = await api.getChapters(activeStory.id);
         setAllChapters(chapters);
         navigate(`/world/${activeStory.slug}/arc/${nextChapter.id}`);
@@ -184,7 +187,7 @@ export const NarrativeProvider = ({ children }) => {
   const retryLastAction = () => {
     if (!lastAttempt) return;
     if (lastAttempt.type === 'start') startQuestAtNode(lastAttempt.story, lastAttempt.leafNode);
-    if (lastAttempt.type === 'choice') handleChoice(lastAttempt.choice, lastAttempt.specificNode, lastAttempt.pacing);
+    if (lastAttempt.type === 'choice') handleChoice(lastAttempt.choice, lastAttempt.specificNode, lastAttempt.pacing, lastAttempt.advancePhase);
   };
 
   // --- EFFECTS ---

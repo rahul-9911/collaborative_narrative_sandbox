@@ -57,10 +57,56 @@ const AppRoutes = ({
           <div className="space-y-12">
             <div className="bg-white/5 border border-white/5 p-6 rounded-2xl flex items-start gap-4"><Info className="w-5 h-5 text-amber-500 shrink-0 mt-1" /><p className="text-xs text-stone-500 leading-relaxed uppercase tracking-wider font-bold">Define the framework. The AI drafting engine will adhere to these constraints.</p></div>
             <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Master Title</label><input type="text" value={newStory.title} onChange={(e) => setNewStory({ ...newStory, title: e.target.value })} className="w-full sf-input text-xl" placeholder="e.g. THE NEON ABYSS" /></div>
-            <div className="grid grid-cols-3 gap-10">
+            <div className="grid grid-cols-2 gap-10">
               <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Genre</label><select value={newStory.metadata.genre} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, genre: e.target.value } })} className="w-full sf-input appearance-none"><option>Cyberpunk</option><option>Grimdark</option><option>Eldritch</option><option>Space Opera</option><option>Historical</option></select></div>
               <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Tone</label><select value={newStory.metadata.tone} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, tone: e.target.value } })} className="w-full sf-input appearance-none"><option>Melancholy</option><option>Cinematic</option><option>Violent</option><option>Dreamlike</option><option>Whimsical</option></select></div>
-              <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Story Length</label><select value={newStory.metadata.chaptersPerStep || 2} onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, chaptersPerStep: parseInt(e.target.value) } })} className="w-full sf-input appearance-none"><option value={1}>Short (8 Chapters)</option><option value={2}>Medium (16 Chapters)</option><option value={4}>Long (32 Chapters)</option></select></div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Narrative Structure</label>
+              <select 
+                value={newStory.metadata.narrative_structure} 
+                onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, narrative_structure: e.target.value } })}
+                className="w-full sf-input appearance-none"
+              >
+                <option value="harmon_circle">Dan Harmon's Story Circle</option>
+                <option value="hero_journey" disabled>The Hero's Journey (Coming Soon)</option>
+                <option value="three_act" disabled>Classic Three-Act Structure (Coming Soon)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Director's Style Chips</label>
+              <div className="flex flex-wrap gap-3">
+                {['Grounded & Gritty', 'Epic & Poetic', 'Fast-Paced Action', 'Character-Driven', 'Noir Atmosphere'].map(chip => {
+                  const isActive = (newStory.metadata.style_constraints || '').includes(chip);
+                  return (
+                    <button 
+                      key={chip}
+                      type="button"
+                      onClick={() => {
+                        const current = newStory.metadata.style_constraints || '';
+                        const next = isActive 
+                          ? current.split(', ').filter(c => c !== chip).join(', ')
+                          : current ? `${current}, ${chip}` : chip;
+                        setNewStory({ ...newStory, metadata: { ...newStory.metadata, style_constraints: next } });
+                      }}
+                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all
+                        ${isActive ? 'bg-amber-500 border-amber-500 text-black' : 'bg-white/5 border-white/10 text-stone-500 hover:border-white/20'}
+                      `}
+                    >
+                      {chip}
+                    </button>
+                  );
+                })}
+              </div>
+              <input 
+                type="text" 
+                value={newStory.metadata.style_constraints || ''} 
+                onChange={(e) => setNewStory({ ...newStory, metadata: { ...newStory.metadata, style_constraints: e.target.value } })} 
+                className="w-full sf-input text-xs mt-4 opacity-50 focus:opacity-100" 
+                placeholder="Or type custom constraints..." 
+              />
             </div>
             <div><label className="block text-[10px] uppercase tracking-[0.3em] font-black text-stone-600 mb-4">Seed (Premise)</label><textarea value={newStory.description} onChange={(e) => setNewStory({ ...newStory, description: e.target.value })} className="w-full sf-input h-48 resize-none text-lg leading-relaxed" placeholder="Describe the spark of this existence..."></textarea></div>
             <button onClick={createStory} disabled={loading} className="sf-button-primary w-full py-8 text-2xl shadow-2xl">{loading ? 'CONSTRUCTING...' : 'BEGIN ARCHITECTURE'}</button>

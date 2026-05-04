@@ -31,13 +31,13 @@ const Chapter = {
     return result.rows;
   },
 
-  async create({ story_id, title, content, parent_id = null }) {
+  async create({ story_id, title, content, parent_id = null, story_step = 1 }) {
     const client = await db.pool.connect();
     try {
       await client.query('BEGIN');
       const chapResult = await client.query(
-        'INSERT INTO chapters (story_id, title, content, parent_id) VALUES ($1, $2, $3, $4) RETURNING *',
-        [story_id, title, content, parent_id]
+        'INSERT INTO chapters (story_id, title, content, parent_id, story_step) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [story_id, title, content, parent_id, story_step]
       );
       const chapter = chapResult.rows[0];
 

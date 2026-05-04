@@ -55,13 +55,14 @@ exports.getChapters = async (req, res) => {
 
 // @desc Create a new chapter (starts with Scene 1)
 exports.createChapter = async (req, res) => {
-  const { title, content, parent_id } = req.body;
+  const { title, content, parent_id, story_step } = req.body;
   try {
     const chapter = await Chapter.create({ 
       story_id: req.params.id, 
       title, 
       content, 
-      parent_id 
+      parent_id,
+      story_step
     });
     
     // Background Trigger: Summarize the PARENT chapter now that it's closed
@@ -95,7 +96,7 @@ async function summarizeChapterInBackground(chapterId, metadata) {
 // @desc Fork a chapter (starts with Scene 1 of the new chapter)
 exports.forkChapter = async (req, res) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, story_step } = req.body;
   try {
     const parent = await Chapter.getById(id);
     if (!parent) return res.status(404).json({ error: 'Parent not found' });
@@ -104,7 +105,8 @@ exports.forkChapter = async (req, res) => {
       story_id: parent.story_id, 
       title, 
       content, 
-      parent_id: id 
+      parent_id: id,
+      story_step
     });
     res.status(201).json(chapter);
   } catch (err) {

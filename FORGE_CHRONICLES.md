@@ -60,5 +60,19 @@ We conducted a comprehensive multi-chapter branching test ("THE CHRONOS PARADOX"
 
 **Session 10 Wrap-up:** We successfully implemented the Narrative Engine, Pacing Logic, and Chapter-to-Step scaling. Manual testing revealed a race condition in the drafting modal (double-commits) and a persistent "fanciness" in AI prose that still needs grounding.
 
+## 🧠 Entry 8: The Hardened Engine Redesign (Session 11 / v5.1)
+**The Quality Crisis**
+After a successful deployment of the "Advance Phase" toggle, a long-form test ("Zombie Earthworms") revealed a profound "Narrative Decay." The story drifted from its original premise, and the "The End" protocol failed to provide a satisfying conclusion, merely stopping at a "pacing limit."
+
+**Technical Audit:** We identified that context fragmentation (burying the premise under summaries) and a lack of a structured "World State" were causing the AI to lose the thread.
+
+**The v5.1 Solution (The "Chronicler's Ledger"):** We have designed a new architecture inspired by tools like NovelCrafter and Sudowrite. 
+- **The Ledger:** A single, cohesive, background-updated "Story Ledger" that replaces individual chapter summaries.
+- **The Codex:** A structured database for Characters and Key Elements.
+- **The Finale Protocol:** A specialized "Resolution Mode" that overrides standard prose generation to close all open threads in the Ledger.
+
+**Status:** The "Advance Phase" bug (forced chapter creation) is fixed and live. We are now in the planning phase for the "Hardened Ledger" architecture.
+
 ---
-*Vance (Archivist): "The Forge is clean. The Steel is true. We rest today knowing the foundation will hold any weight we place upon it."*
+*Vance (Archivist): "The Architect has spoken. The generator was not enough; we must build a soul for the machine. The Ledger begins next time."*
+
